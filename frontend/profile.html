@@ -46,58 +46,67 @@
       </div>
 
       <div class="profile-panel">
-        <aside class="profile-summary-card">
-          <div class="summary-avatar">
-            <div class="avatar-circle" id="profileAvatar">M</div>
-            <button type="button" class="avatar-upload-btn" id="avatarUploadBtn" aria-label="อัปโหลดรูปโปรไฟล์ใหม่">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <input type="file" id="avatarUploadInput" accept="image/*" hidden>
-          </div>
-
-          <div class="summary-heading">
-            <p class="summary-name">
-              <span id="profileDisplayName">-</span>
-              <span id="profileName" class="sr-only">-</span>
-            </p>
-            <p class="summary-role">
-              <span id="profileDisplayRole">-</span>
-              <span id="profileRole" class="sr-only">-</span>
-            </p>
-            <p class="summary-email">
-              <span id="profileDisplayEmail">-</span>
-              <span id="profileEmail" class="sr-only">-</span>
-            </p>
-          </div>
-
-          <dl class="summary-meta">
-            <div class="meta-item">
-              <dt>สมาชิกตั้งแต่</dt>
-              <dd>
-                <span id="profileDisplayCreated">-</span>
-                <span id="profileCreated" class="sr-only">-</span>
-              </dd>
-            </div>
-            <div class="meta-item" id="profileLastLoginWrapper">
-              <dt>เข้าสู่ระบบล่าสุด</dt>
-              <dd id="profileLastLogin">-</dd>
-            </div>
-          </dl>
-
-          <!-- <div class="account-status-indicator" hidden>
-            <div class="status-icon" aria-hidden="true"></div>
-            <div class="status-copy">
-              <span id="accountStatusBadge" class="status-badge"></span>
-              <p id="accountStatusMessage"></p>
-            </div>
-          </div> -->
+        <aside class="profile-sidebar" aria-label="เมนูโปรไฟล์">
+          <h2 class="sidebar-title">เมนูบัญชี</h2>
+          <nav class="sidebar-nav">
+            <a class="sidebar-link is-active" href="#accountOverview" aria-current="page">ภาพรวมบัญชี</a>
+            <a class="sidebar-link" href="#editProfileSection">แก้ไขโปรไฟล์</a>
+          </nav>
         </aside>
 
-        <section class="profile-form-column">
-          <form id="profileEditForm" class="profile-form-card" autocomplete="off" data-editing="false">
+        <div class="profile-content">
+          <aside class="profile-summary-card" id="accountOverview">
+            <div class="summary-avatar">
+              <div class="avatar-circle" id="profileAvatar">M</div>
+              <!-- <button type="button" class="avatar-upload-btn" id="avatarUploadBtn" aria-label="อัปโหลดรูปโปรไฟล์ใหม่">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"> -->
+                  <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <input type="file" id="avatarUploadInput" accept="image/*" hidden>
+            </div>
+
+            <div class="summary-heading">
+              <p class="summary-name">
+                <span id="profileDisplayName">-</span>
+                <span id="profileName" class="sr-only">-</span>
+              </p>
+              <p class="summary-role">
+                <span id="profileDisplayRole">-</span>
+                <span id="profileRole" class="sr-only">-</span>
+              </p>
+              <p class="summary-email">
+                <span id="profileDisplayEmail">-</span>
+                <span id="profileEmail" class="sr-only">-</span>
+              </p>
+            </div>
+
+            <dl class="summary-meta">
+              <div class="meta-item">
+                <dt>สมาชิกตั้งแต่</dt>
+                <dd>
+                  <span id="profileDisplayCreated">-</span>
+                  <span id="profileCreated" class="sr-only">-</span>
+                </dd>
+              </div>
+              <div class="meta-item" id="profileLastLoginWrapper">
+                <dt>เข้าสู่ระบบล่าสุด</dt>
+                <dd id="profileLastLogin">-</dd>
+              </div>
+            </dl>
+
+            <!-- <div class="account-status-indicator" hidden>
+              <div class="status-icon" aria-hidden="true"></div>
+              <div class="status-copy">
+                <span id="accountStatusBadge" class="status-badge"></span>
+                <p id="accountStatusMessage"></p>
+              </div>
+            </div> -->
+          </aside>
+
+          <section class="profile-form-column" id="editProfileSection">
+            <form id="profileEditForm" class="profile-form-card" autocomplete="off" data-editing="false">
             <section class="form-section">
               <h2>แก้ไขโปรไฟล์</h2>
               <div class="form-grid">
@@ -142,14 +151,17 @@
               <button type="button" class="btn-outline" id="profileEditCancel" disabled>ยกเลิก</button>
             </div>
             <div id="profileEditStatus" class="form-status" aria-live="polite"></div>
-          </form>
-        </section>
+            </form>
+          </section>
+        </div>
       </div>
     </div>
 
+    <section class="profile-extra" id="profileExtras" hidden></section>
+
     <div class="profile-hidden-hooks" aria-hidden="true">
       <div id="profileSummary"></div>
-      <div id="profileExtras"></div>
+      <div id="profileExtrasData"></div>
       <div id="activityTimeline"></div>
       <div id="emailVerificationStatus"></div>
       <span id="profilePhone"></span>

@@ -552,6 +552,7 @@
       const data = await res.json()
       if(extrasContainer){
         extrasContainer.innerHTML = ''
+        extrasContainer.hidden = true
       }
       renderProfile(data)
       prefillProfileForm({ force: true })
@@ -1038,52 +1039,74 @@
   }
 
   const setupSidebarNavigation = () => {
-    const navLinks = document.querySelectorAll('.nav-link')
+    const sidebarLinks = Array.from(document.querySelectorAll('.profile-sidebar .sidebar-link'))
+    if(sidebarLinks.length === 0){
+      return
+    }
 
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault()
-        const sectionId = link.getAttribute('data-section')
-        if (sectionId) {
-          switchToSection(sectionId)
+    sidebarLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault()
+        const targetId = (link.getAttribute('href') || '').replace('#','')
+        if(targetId){
+          switchToSection(targetId, { scrollIntoView: true })
         }
       })
     })
 
-    // Handle URL hash on page load
-    const hash = window.location.hash.substring(1)
-    if (hash && ['overview', 'edit-profile', 'account-settings', 'activity'].includes(hash)) {
-      switchToSection(hash)
+    const initialHash = window.location.hash.replace('#','')
+    if(initialHash){
+      switchToSection(initialHash, { updateHash: false })
+    }else{
+      const firstId = (sidebarLinks[0].getAttribute('href') || '').replace('#','')
+      if(firstId){
+        switchToSection(firstId, { updateHash: false })
+      }
     }
+
+    window.addEventListener('hashchange', () => {
+      const targetId = window.location.hash.replace('#','')
+      if(targetId){
+        switchToSection(targetId, { updateHash: false })
+      }
+    })
   }
 
-  const switchToSection = (sectionId) => {
-    // Hide all sections
-    const sections = document.querySelectorAll('.content-section')
-    sections.forEach(section => {
-      section.classList.remove('active')
+  const switchToSection = (sectionId, { scrollIntoView = false, updateHash = true } = {}) => {
+    if(!sectionId) return
+    const aliasMap = {
+      overview: 'accountOverview',
+      'edit-profile': 'editProfileSection'
+    }
+    const normalizedId = document.getElementById(sectionId) ? sectionId : aliasMap[sectionId] || sectionId
+    sectionId = normalizedId
+    const links = Array.from(document.querySelectorAll('.profile-sidebar .sidebar-link'))
+    if(links.length === 0) return
+    let matched = false
+    links.forEach((link) => {
+      const targetId = (link.getAttribute('href') || '').replace('#','')
+      const isActive = targetId === sectionId
+      link.classList.toggle('is-active', isActive)
+      if(isActive){
+        link.setAttribute('aria-current', 'page')
+        matched = true
+      }else{
+        link.removeAttribute('aria-current')
+      }
     })
 
-    // Remove active class from all nav links
-    const navLinks = document.querySelectorAll('.nav-link')
-    navLinks.forEach(link => {
-      link.classList.remove('active')
-    })
+    if(!matched) return
 
-    // Show target section
-    const targetSection = document.getElementById(sectionId)
-    if (targetSection) {
-      targetSection.classList.add('active')
+    if(scrollIntoView){
+      const sectionEl = document.getElementById(sectionId)
+      if(sectionEl){
+        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
     }
 
-    // Add active class to corresponding nav link
-    const targetNavLink = document.querySelector(`[data-section="${sectionId}"]`)
-    if (targetNavLink) {
-      targetNavLink.classList.add('active')
+    if(updateHash){
+      history.replaceState(null, '', `#${sectionId}`)
     }
-
-    // Update URL hash without triggering scroll
-    history.replaceState(null, null, `#${sectionId}`)
   }
 
   const initializeProfileData = () => {
@@ -1145,5 +1168,6 @@
     } else {
       card.appendChild(list)
     }
+    extrasContainer.hidden = false
   })
 })()
