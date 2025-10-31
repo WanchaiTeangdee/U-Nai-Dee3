@@ -455,9 +455,9 @@ function populateFormForListing(listing){
 function highlightEditingRow(){
   const container = document.getElementById('myListings')
   if(!container) return
-  container.querySelectorAll('tr').forEach((row) => row.classList.remove('is-editing'))
+  container.querySelectorAll('.landlord-row').forEach((row) => row.classList.remove('is-editing'))
   if(currentEditId === null) return
-  const row = container.querySelector(`tr[data-listing-id="${cssEscape(String(currentEditId))}"]`)
+  const row = container.querySelector(`.landlord-row[data-listing-id="${cssEscape(String(currentEditId))}"]`)
   if(row){
     row.classList.add('is-editing')
   }
@@ -734,13 +734,13 @@ function renderListings(listings){
       rejected: 'ไม่ผ่านการตรวจสอบ'
     }
     const statusLabel = statusLabels[statusKey] || statusKey || '-'
-  const priceNumber = Number(listing.price)
-  const priceAmount = Number.isFinite(priceNumber) ? `฿${priceNumber.toLocaleString('th-TH')}` : '-'
-  const priceUnit = Number.isFinite(priceNumber) ? '/เดือน' : ''
+    const priceNumber = Number(listing.price)
+    const priceAmount = Number.isFinite(priceNumber) ? `฿${priceNumber.toLocaleString('th-TH')}` : '-'
+    const priceUnit = Number.isFinite(priceNumber) ? '/เดือน' : ''
     const amenitiesText = formatAmenities(listing.amenities)
-    const contactMethods = Array.isArray(listing.contact_methods) && listing.contact_methods.length > 0
+    const contactChips = Array.isArray(listing.contact_methods) && listing.contact_methods.length > 0
       ? listing.contact_methods.map((c) => `<span class="table-chip">${escapeHtml(c.type)}: ${escapeHtml(c.value)}</span>`).join('')
-      : `<span class="table-chip table-chip--muted">-</span>`
+      : `<span class="table-chip table-chip--muted">ยังไม่ได้ระบุ</span>`
     const imageCount = Array.isArray(listing.images) ? listing.images.length : Number(listing.image_count || 0)
     const lat = listing.latitude !== null && listing.latitude !== undefined ? Number(listing.latitude) : null
     const lng = listing.longitude !== null && listing.longitude !== undefined ? Number(listing.longitude) : null
@@ -749,27 +749,45 @@ function renderListings(listings){
     const listingIdStr = String(listing.id)
     const isEditingRow = currentEditId !== null && Number(listing.id) === Number(currentEditId)
     return `
-      <tr data-listing-id="${escapeHtml(listingIdStr)}"${isEditingRow ? ' class="is-editing"' : ''}>
-        <td>
-          ${escapeHtml(listing.title || '-')}
-          <span class="table-sub">สิ่งอำนวยความสะดวก: ${amenitiesText}</span>
-          <span class="table-sub">รูปภาพ: ${imageCount}</span>
+      <tr class="landlord-row${isEditingRow ? ' is-editing' : ''}" data-listing-id="${escapeHtml(listingIdStr)}">
+        <td class="cell-title">
+          <div class="listing-name">${escapeHtml(listing.title || '-')}</div>
+          <div class="table-sub">สิ่งอำนวยความสะดวก: ${amenitiesText}</div>
+          <div class="table-sub">รูปภาพ: ${escapeHtml(String(imageCount))}</div>
         </td>
-        <td>${escapeHtml(LANDLORD_ROLE_LABELS[listing.property_type] || listing.property_type || '-')}</td>
-  <td><span class="table-price"><span class="price-amount">${escapeHtml(priceAmount)}</span><span class="price-unit">${escapeHtml(priceUnit)}</span></span></td>
-        <td>${escapeHtml(listing.province || '-')}
-          <span class="table-sub">พิกัด: ${escapeHtml(locationText)}</span>
+        <td class="cell-type">
+          <span class="table-badge">${escapeHtml(LANDLORD_ROLE_LABELS[listing.property_type] || listing.property_type || '-')}</span>
         </td>
-        <td>${contactMethods}</td>
-        <td><span class="status-pill status-${escapeHtml(statusKey)}">${escapeHtml(statusLabel || '-')}</span></td>
-  <td><button type="button" class="table-action-btn edit-listing-btn" data-id="${escapeHtml(listingIdStr)}">แก้ไข</button></td>
-        <td>${escapeHtml(listing.updated_at || '-')}</td>
+        <td class="cell-price">
+          <div class="table-price">
+            <span class="price-amount">${escapeHtml(priceAmount)}</span>
+            <span class="price-unit">${escapeHtml(priceUnit)}</span>
+          </div>
+        </td>
+        <td class="cell-location">
+          <div class="location-main">${escapeHtml(listing.province || '-')}</div>
+          <div class="table-sub">พิกัด: ${escapeHtml(locationText)}</div>
+        </td>
+        <td class="cell-contact">
+          <div class="table-chip-list">
+            ${contactChips}
+          </div>
+        </td>
+        <td class="cell-status">
+          <span class="status-pill status-${escapeHtml(statusKey)}">${escapeHtml(statusLabel || '-')}</span>
+        </td>
+        <td class="cell-actions">
+          <button type="button" class="table-action-btn edit-listing-btn" data-id="${escapeHtml(listingIdStr)}">แก้ไข</button>
+        </td>
+        <td class="cell-updated">
+          <span class="updated-date">${escapeHtml(listing.updated_at || '-')}</span>
+        </td>
       </tr>
     `
   }).join('')
   container.innerHTML = `
-    <div style="overflow-x:auto">
-      <table>
+    <div class="landlord-table-wrapper">
+      <table class="landlord-table">
         <thead>
           <tr>
             <th>ชื่อประกาศ</th>

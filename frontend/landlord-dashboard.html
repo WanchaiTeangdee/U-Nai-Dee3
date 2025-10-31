@@ -49,15 +49,56 @@
     .btn-outline{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:12px;border:2px solid #3DA5FF;color:#3DA5FF;background:#fff;font-weight:600;cursor:pointer;transition:background-color 140ms ease, box-shadow 140ms ease}
     .btn-outline:hover{background:rgba(11,155,215,0.1);box-shadow:0 12px 28px rgba(11,155,215,0.12)}
     .btn-sm{padding:9px 14px;font-size:13px}
+    .btn-sm.btn-outline{border-width:1px}
+    .btn-sm.btn-outline:hover{background:rgba(61,165,255,0.18)}
     .notice{margin-top:14px;font-size:14px;color:#0a7;background:rgba(45,180,126,0.12);padding:10px 16px;border-radius:10px;border:1px solid rgba(45,180,126,0.2)}
     .error{margin-top:14px;font-size:14px;color:#d64545;background:rgba(255,87,87,0.08);padding:10px 16px;border-radius:10px;border:1px solid rgba(255,87,87,0.22)}
     .edit-banner{margin-top:12px;font-size:13px;color:#1E5F99;background:rgba(11,155,215,0.12);padding:12px 16px;border-radius:12px;border:1px solid rgba(11,155,215,0.24);display:flex;flex-direction:column;gap:4px}
-    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:16px;font-size:14px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 14px 32px rgba(15,101,160,0.14)}
-    th,td{padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:left}
-    th{background:linear-gradient(180deg,#f2f9ff 0%,#e8f3ff 100%);color:#1E5F99;font-weight:600}
-    tr:last-child td{border-bottom:none}
-    td .table-sub{display:block;font-size:12px;color:#6e8194;margin-top:6px}
-  .table-chip{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;margin:4px;border-radius:999px;background:rgba(11,155,215,0.12);color:#1E5F99;font-size:12px;font-weight:600}
+      .landlord-table-wrapper{overflow-x:auto;padding:4px}
+      .landlord-table{width:100%;border-collapse:separate;border-spacing:0 14px;min-width:880px;font-size:14px;color:#20364a}
+      .landlord-table thead th{padding:14px 18px;font-weight:600;font-size:13px;letter-spacing:0.04em;text-transform:uppercase;color:#1E5F99;border:none;background:linear-gradient(180deg,#f6fbff 0%,#e7f1ff 100%);white-space:nowrap}
+      .landlord-table thead th:first-child{border-radius:14px 0 0 14px}
+      .landlord-table thead th:last-child{border-radius:0 14px 14px 0}
+      .landlord-table tbody tr{transition:transform 160ms ease, box-shadow 200ms ease}
+      .landlord-table tbody tr:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(17,145,213,0.14)}
+      .landlord-table tbody td{background:#fff;padding:18px 20px;vertical-align:top;border-top:1px solid rgba(61,165,255,0.08);border-bottom:1px solid rgba(61,165,255,0.08)}
+      .landlord-table tbody td:first-child{border-left:1px solid rgba(61,165,255,0.08);border-radius:18px 0 0 18px}
+      .landlord-table tbody td:last-child{border-right:1px solid rgba(61,165,255,0.08);border-radius:0 18px 18px 0}
+      .landlord-table tbody tr:hover td{background:rgba(255,255,255,0.98)}
+      .landlord-row.is-editing td{box-shadow:inset 0 0 0 1px rgba(61,165,255,0.28)}
+      .listing-name{font-weight:700;font-size:16px;color:#0f436f;margin-bottom:6px}
+      .table-sub{display:block;font-size:12px;color:#6c8098;margin-top:4px}
+      .table-badge{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;background:rgba(95,170,255,0.16);color:#1E5F99;font-weight:600;font-size:12px}
+      .table-price{display:flex;flex-direction:column;line-height:1.1}
+      .price-amount{font-size:18px;font-weight:700;color:#118cd4}
+      .price-unit{font-size:12px;color:#6c8098;margin-top:2px}
+      .table-chip-list{display:flex;flex-wrap:wrap;gap:8px}
+      .table-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(61,165,255,0.12);color:#0d4f89;font-weight:500;font-size:12px}
+      .table-chip--muted{background:rgba(19,31,44,0.08);color:#7a8a9c}
+      .status-pill{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;font-weight:600;font-size:12px}
+      .status-pill.status-active{background:rgba(74,222,159,0.16);color:#1f7a53}
+      .status-pill.status-pending{background:rgba(253,224,71,0.22);color:#c88719}
+      .status-pill.status-inactive{background:rgba(148,163,184,0.18);color:#4b5f6d}
+      .status-pill.status-rejected{background:rgba(248,113,113,0.2);color:#b42330}
+      .table-action-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;border-radius:999px;border:1px solid rgba(61,165,255,0.35);background:#fff;color:#1E5F99;font-weight:600;cursor:pointer;transition:background 160ms ease, box-shadow 160ms ease, transform 160ms ease}
+      .table-action-btn:hover{background:rgba(61,165,255,0.14);box-shadow:0 12px 28px rgba(14,96,152,0.18);transform:translateY(-1px)}
+      .updated-date{font-size:12px;color:#7b8ea4}
+      .cell-location .location-main{font-weight:600;color:#234362;margin-bottom:4px}
+      @media(max-width:900px){
+        .landlord-table{min-width:0;border-spacing:0}
+        .landlord-table thead{display:none}
+        .landlord-table tbody{display:flex;flex-direction:column;gap:18px}
+        .landlord-table tbody tr{display:flex;flex-direction:column;padding:16px;border-radius:18px;background:#fff;box-shadow:0 16px 40px rgba(14,96,152,0.12)}
+        .landlord-table tbody td,
+        .landlord-table tbody td:first-child,
+        .landlord-table tbody td:last-child{border:none;padding:6px 0;background:transparent}
+        .landlord-table tbody tr:hover{transform:none;box-shadow:0 16px 44px rgba(14,96,152,0.16)}
+        .landlord-row.is-editing{border:1px solid rgba(61,165,255,0.3)}
+        .landlord-row.is-editing td{box-shadow:none}
+        .landlord-table tbody td + td{margin-top:10px}
+        .cell-actions{margin-top:6px}
+        .table-action-btn{width:100%}
+      }
   .table-chip--muted{background:rgba(108,127,143,0.14);color:#5d7084}
   .table-action-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:10px;border:1px solid rgba(11,155,215,0.4);background:#fff;color:#1E5F99;font-size:13px;font-weight:600;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease}
   .table-action-btn:hover{transform:translateY(-1px);box-shadow:0 12px 20px rgba(11,155,215,0.16);border-color:rgba(11,155,215,0.6)}
