@@ -737,6 +737,14 @@
     })
   }
 
+  if(editCancelBtn){
+    editCancelBtn.addEventListener('click', () => {
+      clearEditPasswords()
+      setEditStatus('')
+      setEditingMode(false, { resetForm: true })
+    })
+  }
+
   if(avatarUploadBtn && avatarUploadInput) {
     avatarUploadBtn.addEventListener('click', () => {
       avatarUploadInput.click()

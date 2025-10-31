@@ -345,6 +345,46 @@ button {
   gap: 28px;
 }
 
+.form-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.form-section-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #16345c;
+}
+
+.edit-toggle-btn {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(17, 102, 201, 0.28);
+  background: #ffffff;
+  color: #0f3f70;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.edit-toggle-btn:hover,
+.edit-toggle-btn:focus-visible {
+  background: rgba(61, 165, 255, 0.18);
+  box-shadow: 0 12px 28px rgba(17, 102, 201, 0.18);
+  transform: translateY(-1px);
+}
+
+.edit-toggle-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 .form-section h2 {
   margin: 0 0 14px;
   font-size: 20px;
