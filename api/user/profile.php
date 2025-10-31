@@ -14,7 +14,7 @@ if(!$user){
 $userId = (int)$user['id'];
 $role = strtolower((string)($user['role'] ?? ''));
 
-$userStmt = $mysqli->prepare('SELECT id, email, name, phone, role, avatar, email_verified, created_at, last_login FROM users WHERE id = ? LIMIT 1');
+$userStmt = $mysqli->prepare('SELECT id, email, name, role, created_at FROM users WHERE id = ? LIMIT 1');
 if(!$userStmt){
     http_response_code(500);
     echo json_encode(['error' => 'profile_query_failed']);
@@ -148,12 +148,9 @@ $response = [
         'id' => (int)$userRow['id'],
         'email' => $userRow['email'],
         'name' => $userRow['name'],
-        'phone' => $userRow['phone'],
         'role' => $userRow['role'],
-        'avatar' => $userRow['avatar'],
-        'email_verified' => isset($userRow['email_verified']) ? (int)$userRow['email_verified'] : 0,
         'created_at' => $userRow['created_at'],
-        'last_login' => $userRow['last_login']
+        'last_login' => null
     ],
     'stats' => $stats
 ];

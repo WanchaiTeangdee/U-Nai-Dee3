@@ -19,7 +19,7 @@ if(!is_array($body)){
 $requestId = isset($body['request_id']) ? (int)$body['request_id'] : 0;
 $status = isset($body['status']) ? strtolower(trim($body['status'])) : '';
 
-$allowedStatuses = ['pending', 'confirmed', 'contacted', 'closed'];
+$allowedStatuses = ['pending', 'contacted', 'closed'];
 if($requestId <= 0 || !in_array($status, $allowedStatuses, true)){
     http_response_code(422);
     echo json_encode(['error' => 'validation_failed']);

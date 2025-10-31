@@ -18,7 +18,6 @@ if(!is_array($payload)){
 
 $name = isset($payload['name']) ? trim((string)$payload['name']) : null;
 $email = isset($payload['email']) ? trim((string)$payload['email']) : null;
-$phone = isset($payload['phone']) ? trim((string)$payload['phone']) : null;
 $currentPassword = isset($payload['current_password']) ? (string)$payload['current_password'] : '';
 $newPassword = isset($payload['new_password']) ? (string)$payload['new_password'] : '';
 $confirmPassword = isset($payload['confirm_password']) ? (string)$payload['confirm_password'] : '';
@@ -31,12 +30,6 @@ if($email !== null && $email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL
 if($name !== null && $name !== '' && mb_strlen($name, 'UTF-8') > 120){
     http_response_code(422);
     echo json_encode(['error' => 'name_too_long']);
-    exit;
-}
-
-if($phone !== null && $phone !== '' && !preg_match('/^[0-9+\-\s()]{7,20}$/', $phone)){
-    http_response_code(422);
-    echo json_encode(['error' => 'invalid_phone']);
     exit;
 }
 
@@ -69,7 +62,7 @@ if(!$user){
 
 $userId = (int)$user['id'];
 
-$profileStmt = $mysqli->prepare('SELECT email, name, phone, password_hash FROM users WHERE id = ? LIMIT 1');
+$profileStmt = $mysqli->prepare('SELECT email, name, password_hash FROM users WHERE id = ? LIMIT 1');
 if(!$profileStmt){
     http_response_code(500);
     echo json_encode(['error' => 'profile_lookup_failed']);
@@ -93,10 +86,6 @@ $types = '';
 
 if($name !== null && $name !== '' && $name !== $current['name']){
     $updates['name'] = $name;
-}
-
-if($phone !== null && $phone !== $current['phone']){
-    $updates['phone'] = $phone;
 }
 
 if($email !== null && $email !== '' && $email !== $current['email']){
@@ -136,7 +125,6 @@ if(empty($updates)){
             'id' => $userId,
             'email' => $current['email'],
             'name' => $current['name'],
-            'phone' => $current['phone'],
             'role' => $user['role']
         ]
     ], JSON_UNESCAPED_UNICODE);
@@ -180,15 +168,8 @@ if(!$updateStmt->execute()){
 }
 $updateStmt->close();
 
-// Update last_login timestamp
-$loginStmt = $mysqli->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
-$loginStmt->bind_param('i', $userId);
-$loginStmt->execute();
-$loginStmt->close();
-
 $newEmail = $updates['email'] ?? $current['email'];
 $newName = $updates['name'] ?? $current['name'];
-$newPhone = $updates['phone'] ?? $current['phone'];
 
 $response = [
     'success' => true,
@@ -196,7 +177,6 @@ $response = [
         'id' => $userId,
         'email' => $newEmail,
         'name' => $newName,
-        'phone' => $newPhone,
         'role' => $user['role']
     ]
 ];
