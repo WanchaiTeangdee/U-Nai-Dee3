@@ -36,30 +36,6 @@ const resolvePublicUrl = (inputPath) => {
   return `${base}/${normalized}`
 }
 
-// Extra runtime diagnostics: log presence of chat elements and simple click/submit traces
-document.addEventListener('DOMContentLoaded', ()=>{
-  try{
-  console.log('app.js DOMContentLoaded')
-  const chatSendBtn = document.getElementById('chatSendBtn')
-  const chatForm = document.getElementById('chatForm')
-  const chatMessage = document.getElementById('chatMessage')
-  console.log('chat elements', { chatSendBtn: !!chatSendBtn, chatForm: !!chatForm, chatMessage: !!chatMessage })
-
-    if(chatSendBtn){
-      chatSendBtn.addEventListener('click', (e)=>{
-        console.log('debug: chatSendBtn clicked')
-      })
-    }
-    if(chatForm){
-      chatForm.addEventListener('submit', (e)=>{
-        console.log('debug: chatForm submit event')
-      })
-    }
-  }catch(err){
-    console.error('diagnostic attach failed', err)
-  }
-})
-
 async function ensureAuthToken(){
   if(authToken) return authToken
   const stored = localStorage.getItem('authToken')
@@ -150,10 +126,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
   renderUserStatus()
   const logoutBtn = document.getElementById('logoutBtn')
   if(logoutBtn) logoutBtn.addEventListener('click', logout)
+  setupChatHandlers()
 })
 
 // Chat functionality
 let currentConversationId = null
+let conversationsCache = []
+let chatFormEl = null
+let chatSendBtnEl = null
+let chatMessageInputEl = null
+let chatFormMsgEl = null
+let chatHandlersBound = false
 
 async function loadConversations(){
   try{
@@ -164,11 +147,19 @@ async function loadConversations(){
     if(!res.ok) return []
     const data = await res.json().catch(()=>null)
     const conversations = Array.isArray(data?.conversations) ? data.conversations : []
+    conversationsCache = conversations
     renderConversations(conversations)
+    if(conversations.length === 0){
+      currentConversationId = null
+      resetChatView()
+    }
     return conversations
   }catch(err){
     console.error('loadConversations', err)
+    conversationsCache = []
     renderConversations([])
+    currentConversationId = null
+    resetChatView()
     return []
   }
 }
@@ -216,6 +207,7 @@ function renderConversations(conversations){
     const hasUnread = Number(conv.unread_count || 0) > 0
     const div = document.createElement('div')
     div.className = `conversation-item ${hasUnread ? 'unread' : ''} ${currentConversationId === conv.id ? 'selected' : ''}`
+    div.dataset.conversationId = conv.id
     div.innerHTML = `
       <div class="conversation-name">${otherUserName}</div>
       <div class="conversation-preview">${conv.last_message || 'ยังไม่มีข้อความ'}</div>
@@ -224,7 +216,7 @@ function renderConversations(conversations){
     `
     div.addEventListener('click', (event) => {
       event.preventDefault()
-      selectConversation(conv.id)
+      selectConversation(conv.id, event)
     })
     container.appendChild(div)
   })
@@ -245,7 +237,7 @@ function formatTimeAgo(date){
   return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
 }
 
-async function selectConversation(conversationId){
+async function selectConversation(conversationId, eventObj = null){
   if(!conversationId){
     console.error('selectConversation called with undefined conversationId')
     return
@@ -258,23 +250,26 @@ async function selectConversation(conversationId){
     item.classList.remove('selected')
   })
   // Find and select the clicked conversation item
-  const clickedItem = event?.target?.closest('.conversation-item')
+  const clickedItem = eventObj?.currentTarget || eventObj?.target?.closest('.conversation-item') || document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"]`)
   if(clickedItem){
     clickedItem.classList.add('selected')
   }
 
-  // Update conversation info
-  try{
-    const conversations = await loadConversations()
-    const currentConv = conversations.find(c => String(c.id) === String(conversationId))
-    if(currentConv){
-      updateConversationInfo(currentConv)
-    }else{
-      console.warn('Conversation not found:', conversationId)
-      updateConversationInfo({ other_user_name: 'ไม่พบการสนทนา' })
+  let currentConv = conversationsCache.find(c => String(c.id) === String(conversationId))
+  if(!currentConv){
+    try{
+      const refreshed = await loadConversations()
+      currentConv = refreshed.find(c => String(c.id) === String(conversationId)) || null
+    }catch(err){
+      console.error('Error refreshing conversations:', err)
     }
-  }catch(err){
-    console.error('Error loading conversations:', err)
+  }
+
+  if(currentConv){
+    updateConversationInfo(currentConv)
+  }else{
+    console.warn('Conversation not found:', conversationId)
+    updateConversationInfo({ other_user_name: 'ไม่พบการสนทนา' })
   }
 
   await loadMessages(conversationId)
@@ -290,11 +285,13 @@ function updateConversationInfo(conversation){
   const isLandlord = currentUser && isLandlordRole(currentUser.role)
 
   // Calculate other user name
-  let otherUserName = 'ไม่ระบุชื่อ'
-  if(isLandlord){
-    otherUserName = conversation.customer_name || conversation.customer_email || 'ลูกค้า'
-  }else{
-    otherUserName = conversation.landlord_name || 'ผู้ปล่อยเช่า'
+  let otherUserName = conversation.other_user_name || ''
+  if(!otherUserName){
+    if(isLandlord){
+      otherUserName = conversation.customer_name || conversation.customer_email || 'ลูกค้า'
+    }else{
+      otherUserName = conversation.landlord_name || 'ผู้ปล่อยเช่า'
+    }
   }
 
   const avatarEl = infoEl.querySelector('.conversation-avatar')
@@ -302,7 +299,126 @@ function updateConversationInfo(conversation){
   const statusEl = infoEl.querySelector('.conversation-status')
 
   if(nameEl) nameEl.textContent = otherUserName
-  if(statusEl) statusEl.textContent = 'ออนไลน์' // Could be enhanced with actual online status
+  if(statusEl) statusEl.textContent = conversation.status_text || 'ออนไลน์'
+}
+
+function resetChatView(){
+  const messagesContainer = document.getElementById('chatMessages')
+  if(messagesContainer){
+    messagesContainer.innerHTML = `
+      <div class="chat-empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h4>เริ่มการสนทนา</h4>
+        <p>เลือกการสนทนาหรือเริ่มการสนทนาใหม่</p>
+      </div>
+    `
+  }
+
+  updateConversationInfo({
+    other_user_name: 'เลือกการสนทนา',
+    status_text: 'คลิกที่การสนทนาเพื่อเริ่มแชท'
+  })
+
+  const chatFormMsg = chatFormMsgEl || document.getElementById('chatFormMsg')
+  if(chatFormMsg){
+    chatFormMsg.textContent = ''
+    chatFormMsg.classList.remove('form-msg--success')
+  }
+
+  const input = chatMessageInputEl || document.getElementById('chatMessage')
+  if(input){
+    input.value = ''
+    input.placeholder = 'พิมพ์ข้อความของคุณที่นี่...'
+    input.disabled = false
+  }
+}
+
+function setupChatHandlers(){
+  if(chatHandlersBound) return
+  chatFormEl = document.getElementById('chatForm')
+  chatSendBtnEl = document.getElementById('chatSendBtn')
+  chatMessageInputEl = document.getElementById('chatMessage')
+  chatFormMsgEl = document.getElementById('chatFormMsg')
+
+  if(!chatMessageInputEl || !chatSendBtnEl){
+    // Required elements not present yet; try again later
+    return
+  }
+
+  if(chatFormEl){
+    chatFormEl.addEventListener('submit', handleChatSend)
+  }
+  if(chatSendBtnEl){
+    chatSendBtnEl.addEventListener('click', handleChatSend)
+  }
+  if(chatMessageInputEl){
+    chatMessageInputEl.addEventListener('keydown', handleChatInputKeydown)
+  }
+  chatHandlersBound = true
+}
+
+function handleChatInputKeydown(e){
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault()
+    handleChatSend()
+  }
+}
+
+async function handleChatSend(e){
+  if(e && typeof e.preventDefault === 'function') e.preventDefault()
+  if(!chatMessageInputEl){
+    chatMessageInputEl = document.getElementById('chatMessage')
+  }
+  if(!chatFormMsgEl){
+    chatFormMsgEl = document.getElementById('chatFormMsg')
+  }
+  const messageInput = chatMessageInputEl
+  if(!messageInput) return
+  const message = messageInput.value.trim()
+
+  if(!currentConversationId){
+    if(chatFormMsgEl){
+      chatFormMsgEl.textContent = 'กรุณาเลือกการสนทนาก่อนส่งข้อความ'
+      chatFormMsgEl.classList.remove('form-msg--success')
+    }
+    return
+  }
+  if(!message) return
+
+  if(chatFormMsgEl) chatFormMsgEl.textContent = ''
+
+  messageInput.disabled = true
+  const originalPlaceholder = messageInput.placeholder
+  messageInput.placeholder = 'กำลังส่ง...'
+
+  try{
+    await sendMessage(message)
+    messageInput.value = ''
+    if(chatFormMsgEl){
+      chatFormMsgEl.textContent = 'ส่งข้อความแล้ว'
+      chatFormMsgEl.classList.add('form-msg--success')
+      setTimeout(() => {
+        if(chatFormMsgEl){
+          chatFormMsgEl.textContent = ''
+          chatFormMsgEl.classList.remove('form-msg--success')
+        }
+      }, 2000)
+    }
+  }catch(err){
+    console.error('Send message error:', err)
+    if(chatFormMsgEl){
+      chatFormMsgEl.textContent = 'ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง'
+      chatFormMsgEl.classList.remove('form-msg--success')
+    }
+  }finally{
+    messageInput.disabled = false
+    messageInput.placeholder = originalPlaceholder || 'พิมพ์ข้อความของคุณที่นี่...'
+    messageInput.focus()
+  }
 }
 
 async function loadMessages(conversationId){
@@ -381,8 +497,6 @@ function escapeHtml(text) {
 
 async function sendMessage(message){
   if(!currentConversationId) throw new Error('No conversation selected')
-  // debug: show we entered sendMessage
-  try{ console.log('sendMessage called', { conversationId: currentConversationId, hasAuthToken: !!localStorage.getItem('authToken'), messagePreview: (message||'').slice(0,60) }) } catch(e){}
   try{
     const token = localStorage.getItem('authToken')
     if(!token) throw new Error('No auth token available')
@@ -400,8 +514,9 @@ async function sendMessage(message){
     })
     const j = await res.json().catch(()=>null)
     if(res.ok){
-      // refresh messages
+      // refresh messages and conversation list
       await loadMessages(currentConversationId)
+      await loadConversations()
       return j
     }
     // If not OK, surface the server error
@@ -998,8 +1113,24 @@ if(mapContainer && typeof L !== 'undefined'){
   if(chatBtn){
     chatBtn.addEventListener('click', async (e) => {
       e.preventDefault()
+      setupChatHandlers()
       openModal('chatModal')
-      await loadConversations()
+      const conversations = await loadConversations()
+
+      let conversationToSelect = null
+      if(currentConversationId){
+        const exists = conversations.some(c => String(c.id) === String(currentConversationId))
+        if(exists) conversationToSelect = currentConversationId
+      }
+      if(!conversationToSelect && conversations.length > 0){
+        conversationToSelect = conversations[0].id
+      }
+
+      if(conversationToSelect){
+        await selectConversation(conversationToSelect)
+      }else{
+        resetChatView()
+      }
 
       // Focus on message input if conversations exist
       setTimeout(() => {
@@ -1017,82 +1148,12 @@ if(mapContainer && typeof L !== 'undefined'){
         if(e.target.matches('[data-close-modal]') || e.target.closest('[data-close-modal]')){
           closeModal('chatModal')
           currentConversationId = null
+          conversationsCache = []
+          resetChatView()
+          document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('selected'))
         }
       })
 
-      // Chat form submission and send button handling
-      const chatForm = document.getElementById('chatForm')
-      const chatSendBtn = document.getElementById('chatSendBtn')
-      const messageInputEl = document.getElementById('chatMessage')
-      const chatFormMsg = document.getElementById('chatFormMsg')
-
-    async function handleChatSend(e){
-      console.log('handleChatSend called')
-      if(e && e.preventDefault) e.preventDefault()
-      const messageInput = messageInputEl
-      if(!messageInput) return
-      const message = messageInput.value.trim()
-      if(!currentConversationId){
-        if(chatFormMsg){
-          chatFormMsg.textContent = 'กรุณาเลือกการสนทนาก่อนส่งข้อความ'
-          chatFormMsg.classList.remove('form-msg--success')
-        }
-        return
-      }
-  if(!message) return
-
-  // Clear any previous messages
-  if(chatFormMsg) chatFormMsg.textContent = ''
-
-  // debug: log important state so we can see why network may not fire
-  console.log('handleChatSend', { conversationId: currentConversationId, hasAuthToken: !!localStorage.getItem('authToken'), messagePreview: message.slice(0,60) })
-
-  messageInput.disabled = true
-      messageInput.placeholder = 'กำลังส่ง...'
-      try{
-        await sendMessage(message)
-        messageInput.value = ''
-        if(chatFormMsg){
-          chatFormMsg.textContent = 'ส่งข้อความแล้ว'
-          chatFormMsg.classList.add('form-msg--success')
-        }
-        setTimeout(() => { 
-          if(chatFormMsg){
-            chatFormMsg.textContent = ''
-            chatFormMsg.classList.remove('form-msg--success')
-          }
-        }, 2000)
-      }catch(err){
-        console.error('Send message error:', err)
-        if(chatFormMsg){
-          chatFormMsg.textContent = 'ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง'
-          chatFormMsg.classList.remove('form-msg--success')
-        }
-      }finally{
-        messageInput.disabled = false
-        messageInput.placeholder = 'พิมพ์ข้อความของคุณที่นี่...'
-        messageInput.focus()
-      }
+      setupChatHandlers()
     }
-
-    if(chatForm){
-      chatForm.addEventListener('submit', handleChatSend)
-    }
-    if(chatSendBtn){
-      chatSendBtn.addEventListener('click', handleChatSend)
-    }
-
-    // Enter key to send message
-    const messageInput = document.getElementById('chatMessage')
-    if(messageInputEl){
-      messageInputEl.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter' && !e.shiftKey){
-          e.preventDefault()
-          // Prefer a programmatic call to the send handler rather than dispatching a synthetic submit event
-          if(typeof handleChatSend === 'function') handleChatSend()
-          else if(chatSendBtn) chatSendBtn.click()
-        }
-      })
-    }
-  }
 }
