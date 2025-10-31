@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>จัดการประกาศ - U-Nai Dee</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <style>
+    body{margin:0;background:linear-gradient(180deg,#f2f8ff 0%,#f8fbff 40%,#fefeff 100%);font-family:'Poppins','Noto Sans Thai','Sarabun',sans-serif;color:#123}
+    .landlord-shell{max-width:1000px;margin:0 auto;padding:38px 18px 96px 18px}
+    .landlord-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
+    .landlord-header h1{font-size:28px;font-weight:700;margin:0;color:#0b5c97}
+    .landlord-header p{margin:6px 0 0 0;color:#5a6f85;font-size:14px}
+    .landlord-header a{font-size:14px;text-decoration:none;color:#0b9bd7;padding:8px 14px;border-radius:16px;border:1px solid rgba(11,155,215,0.2);background:#fff;box-shadow:0 10px 20px rgba(9,114,177,0.08);transition:transform 140ms ease, box-shadow 140ms ease}
+    .landlord-header a:hover{transform:translateY(-1px);box-shadow:0 18px 32px rgba(9,114,177,0.14)}
+  .card{background:rgba(255,255,255,0.95);border-radius:22px;box-shadow:0 24px 60px rgba(15,101,160,0.16);margin-bottom:26px;border:1px solid rgba(255,255,255,0.6);backdrop-filter:blur(6px);overflow:hidden}
+  .card:not(.collapsible){padding:30px}
+  .card.collapsible .card-body{padding:26px 28px;display:flex;flex-direction:column;gap:18px}
+  .card.collapsible{padding:0}
+  .card-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid rgba(11,155,215,0.1);background:linear-gradient(180deg,#f6fbff 0%,#eaf3ff 100%)}
+  .card-title{font-size:22px;font-weight:600;color:#0b5c97;display:inline-flex;align-items:center;gap:10px}
+  .card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:none;padding:0;color:inherit;font:inherit;cursor:pointer}
+  .card-toggle:focus-visible{outline:3px solid rgba(11,155,215,0.3);outline-offset:3px}
+  .card-toggle-icon{width:22px;height:22px;border-radius:50%;border:1px solid rgba(11,155,215,0.25);display:inline-flex;align-items:center;justify-content:center;position:relative;transition:transform 160ms ease, background-color 160ms ease}
+  .card-toggle-icon::before,.card-toggle-icon::after{content:'';position:absolute;background:#0b5c97;border-radius:2px;transition:transform 160ms ease}
+  .card-toggle-icon::before{width:10px;height:2px}
+  .card-toggle-icon::after{width:2px;height:10px}
+  .card[data-collapsible][data-collapsed="true"] .card-toggle-icon::after{transform:scaleY(0)}
+  .card[data-collapsible][data-collapsed="true"] .card-toggle-icon{transform:rotate(180deg)}
+  .card[data-collapsible][data-collapsed="true"] .card-body{display:none}
+  .card .card-desc{margin:0 0 22px 0;color:#566c82;font-size:14px}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+    .form-group{display:flex;flex-direction:column}
+    .label-text{font-size:13px;font-weight:600;color:#3b5166;margin-bottom:6px}
+    .input-control{padding:12px 14px;border-radius:14px;border:1px solid #dae5f0;background:rgba(255,255,255,0.9);font-family:inherit;font-size:15px;color:#123;transition:border-color 140ms ease, box-shadow 140ms ease}
+    .input-control:focus{border-color:#20a7e4;box-shadow:0 0 0 4px rgba(35,159,235,0.14);outline:none}
+    textarea.input-control{min-height:130px;resize:vertical}
+    .map-card{margin-top:26px;background:linear-gradient(180deg,#f6fbff 0%,#f1f7ff 100%);border:1px solid rgba(11,155,215,0.12);border-radius:20px;padding:22px}
+    .map-card h3{margin:0 0 6px 0;font-size:16px;font-weight:600;color:#0b5c97}
+    .map-card p{margin:0 0 16px 0;font-size:13px;color:#5d7084}
+    .landlord-map{height:280px;border-radius:16px;border:1px solid rgba(11,155,215,0.22);overflow:hidden;box-shadow:0 12px 28px rgba(14,96,152,0.12)}
+    .map-actions{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+    .map-actions button{flex:0 auto}
+    .coordinates{margin-top:10px;font-size:13px;color:#456;display:flex;gap:20px;flex-wrap:wrap}
+    .actions{margin-top:28px;display:flex;gap:14px;flex-wrap:wrap}
+    .btn-primary{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;border-radius:12px;background:linear-gradient(135deg,#1ab0ec 0%,#108fd0 100%);color:#fff;border:none;font-weight:600;cursor:pointer;box-shadow:0 16px 32px rgba(17,145,213,0.24);transition:transform 140ms ease, box-shadow 140ms ease}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 20px 36px rgba(17,145,213,0.28)}
+    .btn-outline{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:12px;border:2px solid #0b9bd7;color:#0b9bd7;background:#fff;font-weight:600;cursor:pointer;transition:background-color 140ms ease, box-shadow 140ms ease}
+    .btn-outline:hover{background:rgba(11,155,215,0.1);box-shadow:0 12px 28px rgba(11,155,215,0.12)}
+    .btn-sm{padding:9px 14px;font-size:13px}
+    .notice{margin-top:14px;font-size:14px;color:#0a7;background:rgba(45,180,126,0.12);padding:10px 16px;border-radius:10px;border:1px solid rgba(45,180,126,0.2)}
+    .error{margin-top:14px;font-size:14px;color:#d64545;background:rgba(255,87,87,0.08);padding:10px 16px;border-radius:10px;border:1px solid rgba(255,87,87,0.22)}
+    .edit-banner{margin-top:12px;font-size:13px;color:#0b5c97;background:rgba(11,155,215,0.12);padding:12px 16px;border-radius:12px;border:1px solid rgba(11,155,215,0.24);display:flex;flex-direction:column;gap:4px}
+    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:16px;font-size:14px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 14px 32px rgba(15,101,160,0.14)}
+    th,td{padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:left}
+    th{background:linear-gradient(180deg,#f2f9ff 0%,#e8f3ff 100%);color:#0b5c97;font-weight:600}
+    tr:last-child td{border-bottom:none}
+    td .table-sub{display:block;font-size:12px;color:#6e8194;margin-top:6px}
+  .table-chip{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;margin:4px;border-radius:999px;background:rgba(11,155,215,0.12);color:#0b5c97;font-size:12px;font-weight:600}
+  .table-chip--muted{background:rgba(108,127,143,0.14);color:#5d7084}
+  .table-action-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:10px;border:1px solid rgba(11,155,215,0.4);background:#fff;color:#0b5c97;font-size:13px;font-weight:600;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease}
+  .table-action-btn:hover{transform:translateY(-1px);box-shadow:0 12px 20px rgba(11,155,215,0.16);border-color:rgba(11,155,215,0.6)}
+  tr.is-editing{background:rgba(11,155,215,0.08)}
+    .image-upload{margin-top:30px;background:linear-gradient(180deg,#f8fbff 0%,#f2f9ff 100%);padding:22px;border-radius:18px;border:1px solid rgba(11,155,215,0.1)}
+    .image-upload label{display:block;font-size:13px;font-weight:600;color:#345;margin-bottom:8px}
+    .image-upload input[type=file]{display:block;padding:12px;border-radius:12px;border:1px dashed rgba(9,114,177,0.32);background:#fff;width:100%;font-family:inherit}
+    .image-upload .hint{margin-top:6px;font-size:12px;color:#678}
+    .image-preview{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+    .preview-item{position:relative;padding:8px;border:1px solid rgba(11,155,215,0.14);background:#fff;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:#456;box-shadow:0 10px 22px rgba(11,155,215,0.12)}
+    .preview-item img{width:100%;height:90px;object-fit:cover;border-radius:10px}
+    .preview-placeholder{padding:24px;border:1px dashed rgba(11,155,215,0.25);border-radius:14px;background:#fff;color:#789;text-align:center;font-size:13px}
+    .amenity-group{margin-top:28px}
+    .amenity-label{font-size:13px;font-weight:600;color:#345;margin-bottom:10px;display:block}
+    .amenity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+  .amenity-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(11,155,215,0.18);border-radius:14px;background:#fff;font-size:13px;color:#32506a;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease}
+  .amenity-item input{accent-color:#0b9bd7}
+  .amenity-item span{pointer-events:none}
+  .amenity-item input:checked + span{font-weight:600}
+  .amenity-item input:checked ~ span{font-weight:600}
+  .amenity-item input:checked + span, .amenity-item input:checked ~ span{color:#0b5c97}
+  .amenity-item input:checked{outline:none}
+  .amenity-item.active-state{background:linear-gradient(135deg,rgba(16,143,208,0.18) 0%,rgba(16,143,208,0.06) 100%);border-color:rgba(16,143,208,0.42);box-shadow:0 14px 24px rgba(16,143,208,0.16);transform:translateY(-1px)}
+    .amenities-other{margin-top:14px}
+    .amenities-other input{width:100%;padding:11px 14px;border-radius:12px;border:1px solid #ccd8e4;font-size:13px}
+    .amenities-other input:focus{border-color:#20a7e4;box-shadow:0 0 0 3px rgba(35,159,235,0.14);outline:none}
+  .contact-channel-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .channel-pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid rgba(11,155,215,0.22);background:#fff;color:#2f4f66;font-size:13px;font-weight:600;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease}
+  .channel-pill input{display:none}
+  .channel-pill.active{background:linear-gradient(135deg,rgba(16,143,208,0.18) 0%,rgba(16,143,208,0.06) 100%);border-color:rgba(16,143,208,0.42);color:#0b5c97;box-shadow:0 12px 22px rgba(16,143,208,0.14);transform:translateY(-1px)}
+  .contact-input-wrapper{margin-top:12px;display:grid;gap:10px}
+  .contact-chip{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;border:1px solid rgba(11,155,215,0.16);background:rgba(255,255,255,0.92);box-shadow:0 14px 30px rgba(11,155,215,0.08)}
+  .contact-chip-header{display:flex;align-items:center;justify-content:space-between}
+  .contact-chip-label{font-size:13px;font-weight:600;color:#0b5c97}
+  .contact-chip-remove{background:transparent;border:none;color:#a4b4c4;font-size:16px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:8px;transition:color 120ms ease, background-color 120ms ease}
+  .contact-chip-remove:hover{color:#d64545;background:rgba(255,87,87,0.12)}
+  .contact-chip input{padding:10px 12px;border-radius:10px;border:1px solid #ccd8e4;font-size:13px;font-family:inherit}
+  .contact-chip input:focus{border-color:#20a7e4;box-shadow:0 0 0 3px rgba(35,159,235,0.14);outline:none}
+    .status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(11,155,215,0.12);color:#0b5c97}
+    .status-pending{background:rgba(255,165,0,0.16);color:#d35400}
+    .status-active{background:rgba(16,172,132,0.16);color:#0e8a5f}
+    .status-inactive{background:rgba(128,128,128,0.16);color:#555}
+    .preview-existing-note{margin-bottom:10px;font-size:12px;color:#456;background:rgba(11,155,215,0.1);padding:8px 12px;border-radius:10px;border:1px solid rgba(11,155,215,0.18)}
+    .existing-image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+  .existing-image-grid .preview-item{align-items:stretch;gap:10px}
+  .preview-remove-btn{margin-top:auto;padding:6px 10px;border-radius:8px;border:1px solid rgba(214,69,69,0.6);background:rgba(214,69,69,0.08);color:#c0392b;font-size:12px;font-weight:600;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, background-color 140ms ease}
+  .preview-remove-btn:hover{background:rgba(214,69,69,0.16);box-shadow:0 10px 18px rgba(214,69,69,0.18);transform:translateY(-1px)}
+    .empty-state{padding:36px;text-align:center;color:#667a8d;font-size:15px;background:linear-gradient(180deg,#f8fbff 0%,#f1f7ff 100%);border-radius:18px;border:1px dashed rgba(11,155,215,0.16)}
+    @media(max-width:768px){
+      .landlord-header{flex-direction:column;align-items:flex-start;gap:12px}
+      .actions{flex-direction:column;align-items:stretch}
+      .landlord-map{height:220px}
+    }
+  </style>
+</head>
+<body>
+  <div class="landlord-shell">
+    <div class="landlord-header">
+      <div>
+        <h1>จัดการประกาศของฉัน</h1>
+        <p>อัปเดตข้อมูลที่พัก ติดภาพ และปักหมุดตำแหน่งได้จากศูนย์กลางเดียว</p>
+      </div>
+      <a href="index.html">← กลับหน้าแรก</a>
+    </div>
+
+  <section class="card collapsible" id="listingFormCard" data-collapsible data-collapsed="true" aria-labelledby="listingFormTitle">
+      <header class="card-header">
+        <button type="button" class="card-toggle" data-target="listingFormContent" aria-expanded="true" aria-controls="listingFormContent">
+          <span class="card-title" id="listingFormTitle" role="heading" aria-level="2">ลงประกาศคอนโด / บ้านเช่าใหม่</span>
+          <span class="card-toggle-icon" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card-body" id="listingFormContent" role="region" aria-labelledby="listingFormTitle">
+        <p class="card-desc">เติมรายละเอียดให้ครบทุกมิติ เพื่อให้ผู้เช่ามองเห็นจุดเด่นของที่พักคุณได้ชัดเจนที่สุด</p>
+        <div class="edit-banner" id="editModeBanner" hidden>
+          <strong>กำลังแก้ไขประกาศ</strong>
+          <span id="editModeSummary">เลือกบันทึกเพื่ออัปเดตประกาศ หรือกดยกเลิกเพื่อกลับสู่โหมดลงประกาศใหม่</span>
+        </div>
+        <form id="listingForm">
+        <div class="form-grid">
+          <label class="form-group"><span class="label-text">ชื่อประกาศ</span>
+            <input class="input-control" type="text" id="listingTitle" required placeholder="เช่น คอนโดใจกลางเมือง ใกล้ BTS" />
+          </label>
+          <label class="form-group"><span class="label-text">ประเภทที่พัก</span>
+            <select class="input-control" id="listingType" required>
+              <option value="condo">คอนโด</option>
+              <option value="house">บ้านเช่า</option>
+              <option value="other">อื่น ๆ</option>
+            </select>
+          </label>
+          <label class="form-group"><span class="label-text">ราคา/เดือน (บาท)</span>
+            <input class="input-control" type="number" id="listingPrice" required min="0" step="100" placeholder="15000" />
+          </label>
+          <label class="form-group"><span class="label-text">จังหวัด</span>
+            <input class="input-control" type="text" id="listingProvince" placeholder="กรุงเทพมหานคร" />
+          </label>
+          <label class="form-group"><span class="label-text">ช่องทางติดต่อ</span>
+            <div class="contact-channel-group" id="contactChannelGroup" role="group" aria-label="เลือกช่องทางติดต่อ">
+              <label class="channel-pill"><input type="checkbox" value="เบอร์โทร" data-placeholder="กรอกเบอร์โทรศัพท์" /> เบอร์โทร</label>
+              <label class="channel-pill"><input type="checkbox" value="Facebook" data-placeholder="ลิงก์หรือชื่อโปรไฟล์ Facebook" /> Facebook</label>
+              <label class="channel-pill"><input type="checkbox" value="Line" data-placeholder="ไอดีหรือ QR Line" /> Line</label>
+              <label class="channel-pill"><input type="checkbox" value="Email" data-placeholder="กรอกอีเมล" /> Email</label>
+              <label class="channel-pill channel-pill--other"><input type="checkbox" value="อื่น ๆ" data-placeholder="ระบุช่องทางอื่น ๆ" /> อื่น ๆ</label>
+            </div>
+            <div class="contact-input-wrapper" id="contactInputs"></div>
+          </label>
+          <label class="form-group"><span class="label-text">ที่อยู่โดยละเอียด</span>
+            <input class="input-control" type="text" id="listingAddress" placeholder="เลขที่ ซอย ถนน เขต" />
+          </label>
+        </div>
+        <label class="form-group" style="margin-top:18px"><span class="label-text">รายละเอียดเพิ่มเติม</span>
+          <textarea class="input-control" id="listingDescription" placeholder="ระบุสิ่งอำนวยความสะดวก เงื่อนไขการเช่า ฯลฯ"></textarea>
+        </label>
+        <section class="map-card">
+          <h3>ปักหมุดตำแหน่งที่ตั้ง</h3>
+          <p>คลิกบนแผนที่เพื่อเลือกตำแหน่งที่พัก หรือใช้ปุ่มตำแหน่งปัจจุบันเพื่อดึงพิกัดโดยอัตโนมัติ</p>
+          <div id="listingMap" class="landlord-map" role="application" aria-label="เลือกตำแหน่งบนแผนที่"></div>
+          <div class="map-actions">
+            <button type="button" class="btn-outline btn-sm" id="useCurrentLocationBtn">ใช้ตำแหน่งปัจจุบัน</button>
+            <button type="button" class="btn-outline btn-sm" id="clearLocationBtn">ล้างปักหมุด</button>
+          </div>
+          <div class="coordinates">
+            <span>ละติจูด: <strong id="latitudeDisplay">-</strong></span>
+            <span>ลองจิจูด: <strong id="longitudeDisplay">-</strong></span>
+          </div>
+          <input type="hidden" id="listingLatitude" />
+          <input type="hidden" id="listingLongitude" />
+        </section>
+
+        <div class="image-upload">
+          <label for="listingImages">รูปภาพประกอบ (สูงสุด 5 รูป)</label>
+          <input type="file" id="listingImages" accept="image/*" multiple />
+          <p class="hint">รองรับ JPG, PNG, WEBP, GIF และไฟล์ละไม่เกิน 5MB</p>
+          <div id="imagePreview" class="image-preview" aria-live="polite"></div>
+        </div>
+
+        <section class="amenity-group">
+          <span class="amenity-label">สิ่งอำนวยความสะดวก (เลือกได้หลายข้อ)</span>
+          <div class="amenity-grid">
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="Wi-Fi" /><span>Wi-Fi</span></label>
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="ที่จอดรถ" /><span>ที่จอดรถ</span></label>
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="ระบบรักษาความปลอดภัย" /><span>ระบบรักษาความปลอดภัย</span></label>
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="สระว่ายน้ำ" /><span>สระว่ายน้ำ</span></label>
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="ฟิตเนส" /><span>ฟิตเนส</span></label>
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="เครื่องปรับอากาศ" /><span>เครื่องปรับอากาศ</span></label>
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="เครื่องใช้ไฟฟ้าครบ" /><span>เครื่องใช้ไฟฟ้าครบ</span></label>
+            <label class="amenity-item"><input type="checkbox" name="amenities[]" value="อนุญาตสัตว์เลี้ยง" /><span>อนุญาตสัตว์เลี้ยง</span></label>
+          </div>
+          <div class="amenities-other">
+            <input type="text" id="amenitiesOther" placeholder="อื่น ๆ โปรดระบุเพิ่มเติม (เช่น ใกล้ BTS / พร้อมเฟอร์ฯ)" />
+          </div>
+        </section>
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="submitListingBtn">บันทึกประกาศ</button>
+          <button type="reset" class="btn-outline" id="resetListingBtn">ล้างข้อมูล</button>
+        </div>
+        <div class="notice" id="listingSuccess" hidden>บันทึกสำเร็จ! เรากำลังตรวจสอบประกาศของคุณ</div>
+        <div class="error" id="listingError" hidden></div>
+        </form>
+      </div>
+    </section>
+
+  <section class="card collapsible" id="listingTableCard" data-collapsible data-collapsed="true" aria-labelledby="listingTableTitle">
+      <header class="card-header">
+        <button type="button" class="card-toggle" data-target="listingTableContent" aria-expanded="true" aria-controls="listingTableContent">
+          <span class="card-title" id="listingTableTitle" role="heading" aria-level="2">ประกาศที่ฉันลงไว้</span>
+          <span class="card-toggle-icon" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card-body" id="listingTableContent" role="region" aria-labelledby="listingTableTitle">
+        <div id="myListings"></div>
+      </div>
+    </section>
+
+  <section class="card collapsible" id="bookingRequestsCard" data-collapsible data-collapsed="true" aria-labelledby="bookingRequestsTitle">
+      <header class="card-header">
+        <button type="button" class="card-toggle" data-target="bookingRequestsContent" aria-expanded="true" aria-controls="bookingRequestsContent">
+          <span class="card-title" id="bookingRequestsTitle" role="heading" aria-level="2">คำขอจองจากลูกค้า</span>
+          <span class="card-toggle-icon" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card-body" id="bookingRequestsContent" role="region" aria-labelledby="bookingRequestsTitle">
+        <p class="card-desc">ตรวจสอบคำขอจองที่ผู้เช่าส่งเข้ามา และเตรียมการติดต่อกลับได้จากศูนย์รวมนี้</p>
+        <div class="booking-requests-toolbar">
+          <button type="button" class="btn-outline btn-sm" id="refreshBookingRequestsBtn">รีเฟรช</button>
+        </div>
+        <div id="bookingRequestsStatus" class="card-note" aria-live="polite" hidden></div>
+        <div class="booking-requests-layout">
+          <div class="booking-requests-main">
+            <div id="bookingRequestsContainer"></div>
+          </div>
+          <aside class="booking-requests-aside" aria-labelledby="confirmedGuestsTitle">
+            <h3 id="confirmedGuestsTitle">การจองที่ยืนยันแล้ว</h3>
+            <div id="confirmedGuests" class="booking-confirmed"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+  <section class="card collapsible" id="messagesSection" data-collapsible data-collapsed="true" aria-labelledby="messagesTitle">
+      <header class="card-header">
+        <button type="button" class="card-toggle" data-target="messagesContent" aria-expanded="true" aria-controls="messagesContent">
+          <span class="card-title" id="messagesTitle" role="heading" aria-level="2">กล่องข้อความจากผู้สนใจเช่า</span>
+          <span class="card-toggle-icon" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card-body" id="messagesContent" role="region" aria-labelledby="messagesTitle">
+        <p class="card-desc">ตอบกลับผู้เช่าที่ติดต่อเข้ามาผ่านระบบแชทนี้ได้โดยตรง</p>
+        <div class="messages-shell">
+        <aside class="messages-sidebar" aria-label="รายการบทสนทนา">
+          <div class="messages-toolbar">
+            <button id="refreshConversationsBtn" type="button" class="btn-outline btn-sm">รีเฟรช</button>
+          </div>
+          <div id="conversationList" class="conversation-list" role="listbox" aria-label="บทสนทนา"></div>
+          <div id="conversationEmpty" class="messages-empty" hidden>ยังไม่มีผู้เช่าติดต่อเข้ามา</div>
+        </aside>
+        <section class="messages-thread" aria-labelledby="conversationTitle">
+          <header class="thread-header">
+            <h3 id="conversationTitle">เลือกบทสนทนา</h3>
+            <div id="conversationMeta" class="thread-meta"></div>
+          </header>
+          <div id="conversationMessages" class="thread-messages" aria-live="polite"></div>
+          <form id="conversationForm" class="thread-form" aria-hidden="true">
+            <textarea id="conversationInput" rows="2" placeholder="พิมพ์ข้อความ..." disabled></textarea>
+            <div class="thread-actions">
+              <div id="conversationStatus" class="form-msg" aria-live="polite"></div>
+              <button type="submit" class="btn-primary" disabled>ส่งข้อความ</button>
+            </div>
+          </form>
+        </section>
+      </div>
+      </div>
+    </section>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <script src="landlord-dashboard.js"></script>
+</body>
+</html>

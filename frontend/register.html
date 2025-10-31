@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register - U-Nai Dee</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="auth-page">
+    <form id="regForm" class="auth-form">
+      <h2>สมัครสมาชิก</h2>
+      <input id="name" type="text" placeholder="ชื่อ" />
+      <input id="email" type="email" placeholder="อีเมล" required />
+      <input id="password" type="password" placeholder="รหัสผ่าน" required />
+      <div class="field" style="margin:10px 0">
+        <span style="display:block;font-size:13px;color:#444;margin-bottom:6px">ประเภทบัญชี</span>
+        <div class="role-options" role="radiogroup" aria-label="เลือกประเภทผู้ใช้งาน">
+          <label class="role-option"><input type="radio" name="role" value="customer" checked /><span>ลูกค้า</span></label>
+          <label class="role-option"><input type="radio" name="role" value="landlord" /><span>ผู้ปล่อยเช่า</span></label>
+        </div>
+      </div>
+      <button type="submit">สมัครสมาชิก</button>
+      <p>มีบัญชีแล้ว? <a href="login.html">เข้าสู่ระบบ</a></p>
+    </form>
+  </div>
+  <script>
+  const phpApiBase = (() => {
+    const { origin, pathname } = window.location
+    const segments = pathname.split('/')
+    if (segments.length && segments[segments.length - 1] === '') segments.pop()
+    if (segments.length) segments.pop()
+    if (segments.length && segments[segments.length - 1] === 'frontend') segments.pop()
+    const basePath = segments.filter(Boolean).join('/')
+    const prefix = basePath ? `/${basePath}` : ''
+    return `${origin}${prefix}/api`
+  })()
+  const phpApi = (endpoint) => `${phpApiBase}/${endpoint}`
+
+  document.getElementById('regForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const roleField = document.querySelector('input[name="role"]:checked')
+    const payload = { email: document.getElementById('email').value, password: document.getElementById('password').value, name: document.getElementById('name').value, role: roleField ? roleField.value : 'customer' };
+    const res = await fetch(phpApi('register.php'), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+    const json = await res.json();
+    if(res.ok){
+      alert('สมัครสมาชิกเรียบร้อย');
+      window.location.href = 'login.html';
+    } else { alert(json.error || 'Register failed') }
+  })
+  </script>
+</body>
+</html>

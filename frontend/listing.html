@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>รายละเอียดประกาศ - U-Nai Dee</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">U-Nai Dee</div>
+      <nav class="top-nav">
+        <a id="loginLink" href="#" data-open-modal="login">เข้าสู่ระบบ</a>
+        <a id="registerLink" href="#" data-open-modal="register">สมัครสมาชิก</a>
+        <a id="landlordLink" href="landlord-dashboard.html" style="display:none">แดชบอร์ดผู้ปล่อยเช่า</a>
+        <a id="adminLink" href="admin-dashboard.html" style="display:none">แดชบอร์ดแอดมิน</a>
+        <span id="userStatus" class="user-status" style="display:none">
+          <a class="user-name" href="profile.html"></a>
+          <span class="user-role"></span>
+          <button id="logoutBtn" type="button" class="btn-ghost">ออกจากระบบ</button>
+        </span>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="listing-shell">
+      <a class="back-link" href="index.html">กลับหน้าค้นหา</a>
+      <header class="listing-header">
+        <h1 id="listingTitle">กำลังโหลด...</h1>
+        <div class="listing-price" id="listingPrice"></div>
+        <div class="listing-meta" id="listingMeta"></div>
+      </header>
+      <div id="listingLoading" class="loading-text" hidden>กำลังโหลดรายละเอียดประกาศ...</div>
+      <div class="listing-layout">
+        <section class="listing-gallery">
+          <img id="listingHeroImage" class="listing-hero-image" src="https://via.placeholder.com/800x500?text=Loading" alt="ภาพประกาศ" />
+          <div id="listingThumbs" class="listing-thumbs"></div>
+        </section>
+        <aside class="listing-summary">
+          <h2>ข้อมูลติดต่อ</h2>
+          <ul id="contactList" class="contact-list"></ul>
+          <div id="ownerInfo" class="listing-owner"></div>
+          <div class="listing-actions">
+            <button id="contactOwnerBtn" type="button" class="btn-primary btn-primary--full">ติดต่อสอบถาม</button>
+            <button id="bookNowBtn" type="button" class="btn-accent btn-accent--full">กดจอง</button>
+            <button id="chatOwnerBtn" type="button" class="btn-outline btn-outline--full" hidden>แชทกับเจ้าของ</button>
+          </div>
+        </aside>
+      </div>
+      <section class="listing-section">
+        <h3>รายละเอียด</h3>
+        <p id="listingDescription">กำลังโหลดรายละเอียด...</p>
+      </section>
+      <section class="listing-section">
+        <h3>สิ่งอำนวยความสะดวก</h3>
+        <div id="amenitiesList" class="amenities-grid"></div>
+      </section>
+      <section class="listing-section">
+        <h3>ตำแหน่งที่ตั้ง</h3>
+        <div id="listingDetailMap"></div>
+      </section>
+      <div class="listing-updated" id="listingUpdated"></div>
+      <div id="listingError" class="error" hidden></div>
+    </div>
+  </main>
+
+  <section id="contactModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" role="document">
+      <button type="button" class="modal-close" data-close aria-label="ปิดหน้าต่าง">✕</button>
+      <h2>ติดต่อสอบถาม</h2>
+      <p id="contactModalSummary">เลือกช่องทางติดต่อด้านล่างเพื่อคัดลอกหรือเปิดทันที</p>
+      <div id="contactModalList" class="contact-modal-list"></div>
+      <button type="button" class="btn-outline" data-close>ปิด</button>
+    </div>
+  </section>
+
+  <section id="bookingModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" role="document">
+      <button type="button" class="modal-close" data-close aria-label="ปิดหน้าต่าง">✕</button>
+      <h2>กดจอง</h2>
+      <p>กรอกข้อมูลเพื่อติดต่อเจ้าของประกาศสำหรับการจอง</p>
+      <form id="bookingForm" class="booking-form">
+        <label class="field"><span>ชื่อของคุณ</span><input id="bookingName" type="text" required /></label>
+        <label class="field"><span>อีเมล</span><input id="bookingEmail" type="email" required /></label>
+        <label class="field"><span>เบอร์โทร</span><input id="bookingPhone" type="tel" /></label>
+        <label class="field"><span>ข้อความเพิ่มเติม</span><textarea id="bookingMessage" rows="3" placeholder="แจ้งช่วงเวลาที่สะดวกหรือรายละเอียดอื่น ๆ"></textarea></label>
+        <div id="bookingStatus" class="form-msg" aria-live="polite"></div>
+        <button type="submit" class="btn-primary">ส่งคำขอจอง</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="chatModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel chat-panel" role="document">
+      <button type="button" class="modal-close" data-close aria-label="ปิดหน้าต่าง">✕</button>
+      <h2>แชทกับเจ้าของ</h2>
+      <p id="chatListingTitle" class="chat-listing-title"></p>
+      <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+      <form id="chatForm" class="chat-form">
+        <div class="chat-input-row">
+          <textarea id="chatInput" rows="2" placeholder="พิมพ์ข้อความ..." required></textarea>
+          <button type="submit" class="btn-primary btn-chat-send">ส่ง</button>
+        </div>
+        <div id="chatStatus" class="form-msg" aria-live="polite"></div>
+      </form>
+    </div>
+  </section>
+
+  <aside id="authPanel" class="auth-panel" aria-hidden="true" aria-labelledby="authTitle">
+    <button id="authClose" class="modal-close" aria-label="ปิดแบบฟอร์ม">✕</button>
+    <div class="auth-inner">
+      <div class="auth-tabs">
+        <button id="tabLogin" class="auth-tab active" data-tab="login">เข้าสู่ระบบ</button>
+        <button id="tabRegister" class="auth-tab" data-tab="register">สมัครสมาชิก</button>
+      </div>
+      <div id="authContent">
+        <form id="panelLoginForm" class="auth-form" aria-hidden="false">
+          <h3 id="authTitle">เข้าสู่ระบบ</h3>
+          <label class="field"><span>อีเมล</span><input id="panelEmail" type="email" required /></label>
+          <label class="field"><span>รหัสผ่าน</span>
+            <div class="pwd-wrap"><input id="panelPassword" type="password" required /><button type="button" id="panelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#0b9bd7"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          </label>
+          <div class="row login-options" style="margin-top:8px">
+            <label class="field checkbox" style="margin:0"><input id="rememberMe" type="checkbox" /> จดจำรหัสผ่าน</label>
+            <a href="#" id="forgotLink" style="font-size:13px;color:#0b9bd7;text-decoration:none">ลืมรหัสผ่าน?</a>
+          </div>
+          <div id="panelLoginMsg" class="form-msg" aria-live="polite"></div>
+          <button id="panelLoginBtn" type="submit" class="btn-primary">เข้าสู่ระบบ</button>
+          <div id="passwordResetBox" style="display:none;margin-top:12px;padding:12px;border-radius:8px;background:#f8fbfd;border:1px solid #eef6fb">
+            <div style="font-weight:600;margin-bottom:6px">รีเซ็ตรหัสผ่าน</div>
+            <input id="resetEmail" type="email" placeholder="กรอกอีเมลสำหรับรีเซ็ต" style="width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px" />
+            <div style="display:flex;gap:8px"><button id="sendResetBtn" class="btn-primary" style="flex:1">ส่งลิงก์รีเซ็ต</button><button id="cancelResetBtn" class="btn-outline btn-sm" style="flex:0">ยกเลิก</button></div>
+            <div id="resetMsg" class="form-msg" aria-live="polite"></div>
+          </div>
+        </form>
+
+        <form id="panelRegisterForm" class="auth-form" aria-hidden="true">
+          <h3>สมัครสมาชิก</h3>
+          <label class="field"><span>ชื่อผู้ใช้</span><input id="regUsernamePanel" type="text" required /></label>
+          <div class="two-cols">
+            <label class="field"><span>เบอร์โทรศัพท์</span><input id="phone" type="tel" /></label>
+            <label class="field"><span>อีเมล</span><input id="regEmailPanel" type="email" required /></label>
+          </div>
+          <label class="field"><span>รหัสผ่าน</span>
+            <div class="pwd-wrap"><input id="regPasswordPanel" type="password" required /><button type="button" id="regPanelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#0b9bd7"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          </label>
+          <label class="field"><span>ยืนยันรหัสผ่าน</span><input id="regPasswordConfirmPanel" type="password" required /></label>
+          <div class="field">
+            <span>ประเภทบัญชี</span>
+            <div class="role-options" role="radiogroup" aria-label="เลือกประเภทผู้ใช้งาน">
+              <label class="role-option"><input type="radio" name="regRole" value="customer" checked /><span>ลูกค้า</span></label>
+              <label class="role-option"><input type="radio" name="regRole" value="landlord" /><span>ผู้ปล่อยเช่า</span></label>
+            </div>
+          </div>
+          <div class="pw-hint">ต้องมีอย่างน้อย 8 ตัวอักษร มีตัวใหญ่ ตัวเล็ก และตัวเลข</div>
+          <div id="panelRegMsg" class="form-msg" aria-live="polite"></div>
+          <button id="panelRegisterBtn" type="submit" class="btn-primary">สมัครสมาชิก</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+  <script src="listing.js"></script>
+</body>
+</html>

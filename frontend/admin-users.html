@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tenants - U-Nai Dee</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Calendar feature removed (FullCalendar & icons omitted) -->
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #06b6d4;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      --border-radius: 8px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Poppins', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: var(--gray-800);
+      line-height: 1.6;
+    }
+
+    .admin-layout {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .admin-header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius-xl);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .admin-header:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    }
+
+    .admin-title {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+    }
+
+    .admin-brand-note {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      opacity: 0.8;
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--border-radius-lg);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-outline:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: var(--primary);
+      color: white;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      gap: 2rem;
+      flex: 1;
+    }
+
+    .sidebar-left, .sidebar-right {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius-xl);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .profile-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: var(--border-radius-lg);
+      color: white;
+      margin-bottom: 1.5rem;
+    }
+
+    .avatar {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+
+    .profile-meta .name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .profile-meta .role {
+      font-size: 0.875rem;
+      color: #ffffff;
+      opacity: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-list a {
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      color: var(--gray-700);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-emoji {
+      font-size: 1.25rem;
+      width: 1.5rem;
+      text-align: center;
+    }
+
+    .nav-list a:hover, .nav-list a.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      transform: translateX(4px);
+    }
+
+    .nav-list a::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: var(--secondary);
+      transform: scaleY(0);
+      transition: transform 0.2s ease;
+    }
+
+    .nav-list a:hover::before, .nav-list a.active::before {
+      transform: scaleY(1);
+    }
+
+    .main-col {
+      min-height: 0;
+    }
+
+    .admin-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .admin-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius-xl);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      transform: translate(50px, -50px);
+    }
+
+    .admin-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .admin-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .admin-card h3::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary), transparent);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--border-radius-lg);
+      background: rgba(255, 255, 255, 0.5);
+      margin-bottom: 1rem;
+    }
+
+    .admin-card table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      background: transparent;
+    }
+
+    .admin-card table thead {
+      background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
+      color: var(--gray-700);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .admin-card table th,
+    .admin-card table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+      vertical-align: middle;
+      line-height: 1.5;
+    }
+
+    .admin-card table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    .admin-card table tbody tr:hover {
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .admin-card table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--gray-500);
+      font-size: 0.875rem;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: var(--border-radius-lg);
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .sidebar-left, .sidebar-right {
+        position: static;
+      }
+
+      .sidebar-right {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .admin-layout {
+        padding: 1rem 0.5rem 2rem;
+      }
+
+      .admin-header {
+        padding: 1.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .admin-title {
+        font-size: 1.5rem;
+      }
+
+      .dashboard-grid {
+        gap: 1rem;
+      }
+
+      .sidebar-left, .sidebar-right {
+        padding: 1rem;
+      }
+
+      .admin-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .admin-card, .sidebar-left, .sidebar-right {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .admin-card:nth-child(1) { animation-delay: 0.1s; }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .action-btn {
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--border-radius);
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.edit {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    .action-btn.edit:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .action-btn.delete {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+
+    .action-btn.delete:hover {
+      background: var(--error);
+      color: white;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--gray-500);
+      padding: 0.25rem;
+      border-radius: var(--border-radius);
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 0.875rem;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--border-radius);
+      font-family: inherit;
+      font-size: 0.875rem;
+      background: white;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .btn-secondary {
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--gray-300);
+      background: white;
+      color: var(--gray-700);
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-400);
+    }
+
+    .btn-primary {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Enhanced Table Styles */
+    .admin-card table {
+      border-radius: var(--border-radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .admin-card table thead {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .admin-card table thead th {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.75rem;
+      padding: 1rem;
+      border: none;
+    }
+
+    .admin-card table tbody tr {
+      transition: all 0.2s ease;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .admin-card table tbody tr:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.02), rgba(99, 102, 241, 0.05));
+      transform: translateX(2px);
+    }
+
+    .admin-card table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    /* Enhanced Button Styles */
+    #addUserBtn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--border-radius-lg);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #addUserBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    #addUserBtn svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .modal-content {
+        width: 95%;
+        margin: 1rem;
+      }
+
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: 1rem;
+      }
+
+      .admin-card table {
+        font-size: 0.75rem;
+      }
+
+      .admin-card table th,
+      .admin-card table td {
+        padding: 0.5rem;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .action-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+      }
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toast {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius-lg);
+      padding: 1rem 1.5rem;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 300px;
+      animation: slideInRight 0.3s ease-out;
+      border-left: 4px solid var(--primary);
+    }
+
+    .toast.success {
+      border-left-color: var(--success);
+    }
+
+    .toast.error {
+      border-left-color: var(--error);
+    }
+
+    .toast-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .toast.success .toast-icon {
+      color: var(--success);
+    }
+
+    .toast.error .toast-icon {
+      color: var(--error);
+    }
+
+    .toast-message {
+      flex: 1;
+      font-weight: 500;
+      color: var(--gray-900);
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: var(--gray-500);
+      padding: 0.25rem;
+      border-radius: var(--border-radius);
+      transition: all 0.2s ease;
+    }
+
+    .toast-close:hover {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    /* Button with spinner */
+    .btn-primary {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Animations */
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <header class="admin-header">
+      <div>
+        <div class="admin-title">Tenants</div>
+        <div class="admin-brand-note">จัดการโปรไฟล์ผู้ใช้ทั้งหมด</div>
+      </div>
+      <nav>
+        <a href="admin-dashboard.html" class="btn-outline">กลับหน้าแรก</a>
+      </nav>
+    </header>
+    <div class="dashboard-grid">
+      <aside class="sidebar-left">
+        <div class="profile-card">
+          <div class="avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="profile-meta">
+            <div class="name">ผู้ดูแลระบบ</div>
+            <div class="role">Admin • U-Nai Dee</div>
+          </div>
+        </div>
+        <nav class="nav-list">
+          <a href="admin-dashboard.html">
+            <span class="nav-emoji">📊</span>
+            Overview
+          </a>
+          <a href="admin-listings.html">
+            <span class="nav-emoji">🏠</span>
+            Properties
+          </a>
+          <a href="admin-bookings.html">
+            <span class="nav-emoji">📅</span>
+            Bookings
+          </a>
+          <a href="admin-users.html" class="active">
+            <span class="nav-emoji">👥</span>
+            Tenants
+          </a>
+          <a href="admin-payments.html">
+            <span class="nav-emoji">💳</span>
+            Payments
+          </a>
+          <a href="admin-issues.html">
+            <span class="nav-emoji">📈</span>
+            Reports
+          </a>
+          <a href="admin-notifications.html">
+            <span class="nav-emoji">🔔</span>
+            Notifications
+          </a>
+        </nav>
+      </aside>
+
+      <main class="admin-content main-col">
+        <section class="admin-card" id="adminUsers">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          โปรไฟล์ผู้ใช้ทั้งหมด
+        </h3>
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button id="addUserBtn" class="btn-outline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              เพิ่มผู้ใช้ใหม่
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="text" id="userSearch" placeholder="ค้นหาผู้ใช้..." style="padding: 0.5rem 1rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); font-size: 0.875rem;">
+            <select id="roleFilter" style="padding: 0.5rem 1rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); font-size: 0.875rem;">
+              <option value="">ทั้งหมด</option>
+              <option value="customer">ลูกค้า</option>
+              <option value="landlord">ผู้ปล่อยเช่า</option>
+              <option value="admin">แอดมิน</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>ชื่อ</th><th>อีเมล</th><th>บทบาท</th><th>สมัครเมื่อ</th><th>จัดการ</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        </div>
+        <div class="empty" hidden>ยังไม่มีข้อมูลผู้ใช้</div>
+      </section>
+      </main>
+
+      <aside class="sidebar-right">
+          <!-- Events feature removed -->
+      </aside>
+    </div>
+  </div>
+  <script src="admin-dashboard.js"></script>
+
+  <!-- User Modal -->
+  <div id="userModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">เพิ่มผู้ใช้ใหม่</h3>
+        <button class="modal-close" onclick="closeUserModal()">&times;</button>
+      </div>
+      <form id="userForm" class="modal-body">
+        <div class="form-group">
+          <label for="userName">ชื่อผู้ใช้ *</label>
+          <input type="text" id="userName" required>
+        </div>
+        <div class="form-group">
+          <label for="userEmail">อีเมล *</label>
+          <input type="email" id="userEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="userRole">บทบาท</label>
+          <select id="userRole">
+            <option value="customer">ลูกค้า</option>
+            <option value="landlord">ผู้ปล่อยเช่า</option>
+            <option value="admin">แอดมิน</option>
+          </select>
+        </div>
+        <div class="form-group" id="passwordGroup">
+          <label for="userPassword">รหัสผ่าน *</label>
+          <input type="password" id="userPassword" required>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeUserModal()">ยกเลิก</button>
+        <button type="button" class="btn-primary" onclick="saveUser()" id="saveBtn">
+          <span class="btn-text">บันทึก</span>
+          <div class="btn-spinner" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite;">
+              <path d="M4 12C4 10.8954 4.89543 10 6 10C7.10457 10 8 10.8954 8 12C8 13.1046 7.10457 14 6 14" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 4C13.1046 4 14 4.89543 14 6C14 7.10457 13.1046 8 12 8" stroke="currentColor" stroke-width="2"/>
+              <path d="M20 12C20 13.1046 19.1046 14 18 14C16.8954 14 16 13.1046 16 12C16 10.8954 16.8954 10 18 10" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 20C10.8954 20 10 19.1046 10 18C10 16.8954 10.8954 16 12 16" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Events modal and UI removed -->
+</body>
+</html>
