@@ -117,6 +117,15 @@ $conversationIds = [];
 while($row = $result->fetch_assoc()){
     $id = (int)$row['id'];
     $conversationIds[] = $id;
+    $parsedLast = parse_stored_message($row['last_message'] ?? '');
+    $preview = $parsedLast['text'];
+    if($preview !== ''){
+        $preview = mb_strimwidth($preview, 0, 60, '…', 'UTF-8');
+    }
+    if($preview === '' && $parsedLast['type'] === 'image'){
+        $preview = 'ส่งรูปภาพ';
+    }
+    $otherUserName = determine_other_user_name($row, $userId);
     $conversations[$id] = [
         'id' => $id,
         'listing_id' => isset($row['listing_id']) ? (int)$row['listing_id'] : null,
@@ -128,10 +137,15 @@ while($row = $result->fetch_assoc()){
         'landlord_name' => $row['landlord_name'] ?? null,
         'updated_at' => $row['updated_at'] ?? null,
         'last_message_id' => $row['last_message_id'] !== null ? (int)$row['last_message_id'] : null,
-        'last_message' => $row['last_message'] ?? null,
+        'last_message' => $parsedLast['text'],
+        'last_message_type' => $parsedLast['type'],
+        'last_message_attachment_url' => $parsedLast['attachment_url'],
+        'last_message_preview' => $preview,
         'last_sender_id' => $row['last_sender_id'] !== null ? (int)$row['last_sender_id'] : null,
         'last_message_at' => $row['last_message_at'] ?? null,
-        'unread_count' => 0
+        'unread_count' => 0,
+        'other_user_name' => $otherUserName,
+        'status_text' => 'ออนไลน์'
     ];
 }
 $stmt->close();
@@ -173,3 +187,70 @@ $response = [
 ];
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
+
+function parse_stored_message(?string $stored){
+    if($stored === null) $stored = '';
+    $type = 'text';
+    $text = $stored;
+    $attachment = null;
+    if(strpos($stored, 'image::') === 0){
+        $payload = substr($stored, 7);
+        $caption = '';
+        $path = $payload;
+        if(strpos($payload, '|') !== false){
+            [$path, $encodedCaption] = explode('|', $payload, 2);
+            $decoded = base64_decode($encodedCaption, true);
+            if($decoded !== false){
+                $caption = $decoded;
+            }
+        }
+        $type = 'image';
+        $attachment = resolve_attachment_public_path($path);
+        $text = $caption;
+    }
+    return [
+        'type' => $type,
+        'text' => $text,
+        'attachment_url' => $attachment
+    ];
+}
+
+function determine_other_user_name(array $row, int $viewerId){
+    $landlordId = isset($row['landlord_id']) ? (int)$row['landlord_id'] : 0;
+    $customerId = isset($row['customer_id']) ? (int)$row['customer_id'] : 0;
+    if($viewerId === $landlordId){
+        return $row['customer_name'] ?? $row['customer_email'] ?? 'ลูกค้า';
+    }
+    if($viewerId === $customerId){
+        return $row['landlord_name'] ?? 'ผู้ปล่อยเช่า';
+    }
+    // Admin or other - prefer customer name for clarity
+    return $row['customer_name'] ?? $row['customer_email'] ?? ($row['landlord_name'] ?? 'ผู้ใช้งาน');
+}
+
+function resolve_attachment_public_path(string $path){
+    $trimmed = trim($path);
+    if($trimmed === ''){
+        return null;
+    }
+    if(preg_match('#^https?://#i', $trimmed)){
+        return $trimmed;
+    }
+    $normalized = ltrim($trimmed, '/');
+    if($normalized === ''){
+        return null;
+    }
+    $projectRoot = realpath(__DIR__ . '/../..');
+    if($projectRoot !== false){
+        $normalizedFs = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $normalized);
+        $candidate = $projectRoot . DIRECTORY_SEPARATOR . $normalizedFs;
+        if(file_exists($candidate)){
+            return '/' . $normalized;
+        }
+        $apiCandidate = $projectRoot . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . $normalizedFs;
+        if(file_exists($apiCandidate)){
+            return '/api/' . $normalized;
+        }
+    }
+    return '/' . $normalized;
+}

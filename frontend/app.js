@@ -137,6 +137,14 @@ let chatSendBtnEl = null
 let chatMessageInputEl = null
 let chatFormMsgEl = null
 let chatHandlersBound = false
+let chatAttachmentBtnEl = null
+let chatAttachmentInputEl = null
+let chatAttachmentPreviewEl = null
+let chatAttachmentNameEl = null
+let chatAttachmentRemoveBtnEl = null
+let chatAttachmentFile = null
+let chatAttachmentThumbEl = null
+let chatAttachmentPreviewUrl = null
 
 async function loadConversations(){
   try{
@@ -197,20 +205,28 @@ function renderConversations(conversations){
     }
 
     // Calculate other user name
-    let otherUserName = 'ไม่ระบุชื่อ'
-    if(isLandlord){
-      otherUserName = conv.customer_name || conv.customer_email || 'ลูกค้า'
-    }else{
-      otherUserName = conv.landlord_name || 'ผู้ปล่อยเช่า'
+    let otherUserName = conv.other_user_name || 'ไม่ระบุชื่อ'
+    if(!conv.other_user_name){
+      if(isLandlord){
+        otherUserName = conv.customer_name || conv.customer_email || 'ลูกค้า'
+      }else{
+        otherUserName = conv.landlord_name || 'ผู้ปล่อยเช่า'
+      }
     }
 
     const hasUnread = Number(conv.unread_count || 0) > 0
+    const messageType = conv.last_message_type || (conv.last_message_attachment_url ? 'image' : 'text')
+    let previewText = conv.last_message_preview || conv.last_message || ''
+    if(!previewText){
+      previewText = messageType === 'image' ? 'ส่งรูปภาพ' : 'ยังไม่มีข้อความ'
+    }
+
     const div = document.createElement('div')
     div.className = `conversation-item ${hasUnread ? 'unread' : ''} ${currentConversationId === conv.id ? 'selected' : ''}`
     div.dataset.conversationId = conv.id
     div.innerHTML = `
-      <div class="conversation-name">${otherUserName}</div>
-      <div class="conversation-preview">${conv.last_message || 'ยังไม่มีข้อความ'}</div>
+      <div class="conversation-name">${escapeHtml(otherUserName)}</div>
+      <div class="conversation-preview">${escapeHtml(previewText)}</div>
       <div class="conversation-time">${conv.last_message_at ? formatTimeAgo(new Date(conv.last_message_at)) : ''}</div>
       ${hasUnread ? `<span class="unread-badge">${conv.unread_count}</span>` : ''}
     `
@@ -335,6 +351,15 @@ function resetChatView(){
     input.placeholder = 'พิมพ์ข้อความของคุณที่นี่...'
     input.disabled = false
   }
+  clearAttachment()
+}
+
+function closeChatInterface(){
+  closeModal('chatModal')
+  currentConversationId = null
+  conversationsCache = []
+  resetChatView()
+  document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('selected'))
 }
 
 function setupChatHandlers(){
@@ -343,6 +368,15 @@ function setupChatHandlers(){
   chatSendBtnEl = document.getElementById('chatSendBtn')
   chatMessageInputEl = document.getElementById('chatMessage')
   chatFormMsgEl = document.getElementById('chatFormMsg')
+  chatAttachmentBtnEl = document.getElementById('chatAttachmentBtn')
+  chatAttachmentInputEl = document.getElementById('chatAttachmentInput')
+  chatAttachmentPreviewEl = document.getElementById('chatAttachmentPreview')
+  chatAttachmentNameEl = document.getElementById('chatAttachmentName')
+  chatAttachmentRemoveBtnEl = document.getElementById('chatAttachmentRemove')
+  chatAttachmentThumbEl = document.getElementById('chatAttachmentThumb')
+  if(chatAttachmentThumbEl && typeof chatAttachmentThumbEl.dataset.placeholder === 'undefined'){
+    chatAttachmentThumbEl.dataset.placeholder = chatAttachmentThumbEl.innerHTML
+  }
 
   if(!chatMessageInputEl || !chatSendBtnEl){
     // Required elements not present yet; try again later
@@ -358,6 +392,18 @@ function setupChatHandlers(){
   if(chatMessageInputEl){
     chatMessageInputEl.addEventListener('keydown', handleChatInputKeydown)
   }
+  if(chatAttachmentBtnEl && chatAttachmentInputEl){
+    chatAttachmentBtnEl.addEventListener('click', () => chatAttachmentInputEl.click())
+  }
+  if(chatAttachmentInputEl){
+    chatAttachmentInputEl.addEventListener('change', handleAttachmentChange)
+  }
+  if(chatAttachmentRemoveBtnEl){
+    chatAttachmentRemoveBtnEl.addEventListener('click', (e) => {
+      e.preventDefault()
+      clearAttachment()
+    })
+  }
   chatHandlersBound = true
 }
 
@@ -365,6 +411,84 @@ function handleChatInputKeydown(e){
   if(e.key === 'Enter' && !e.shiftKey){
     e.preventDefault()
     handleChatSend()
+  }
+}
+
+function handleAttachmentChange(){
+  if(!chatAttachmentInputEl) return
+  const file = chatAttachmentInputEl.files && chatAttachmentInputEl.files[0]
+  if(!file){
+    clearAttachment()
+    return
+  }
+  if(!/^image\//i.test(file.type)){
+    clearAttachment()
+    if(chatFormMsgEl){
+      chatFormMsgEl.textContent = 'กรุณาเลือกเฉพาะไฟล์รูปภาพ (PNG, JPG, GIF, WEBP)'
+      chatFormMsgEl.classList.remove('form-msg--success')
+    }
+    return
+  }
+  if(file.size > 5 * 1024 * 1024){
+    clearAttachment()
+    if(chatFormMsgEl){
+      chatFormMsgEl.textContent = 'ไฟล์รูปต้องมีขนาดไม่เกิน 5 MB'
+      chatFormMsgEl.classList.remove('form-msg--success')
+    }
+    return
+  }
+  chatAttachmentFile = file
+  updateAttachmentPreview(file)
+  if(chatFormMsgEl){
+    chatFormMsgEl.textContent = ''
+  }
+}
+
+function updateAttachmentPreview(file){
+  if(!file) return
+  if(chatAttachmentPreviewEl){
+    chatAttachmentPreviewEl.hidden = false
+  }
+  if(chatAttachmentNameEl){
+    const sizeKB = Math.max(1, Math.round(file.size / 1024))
+    const sizeLabel = sizeKB >= 1024 ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeKB} KB`
+    chatAttachmentNameEl.textContent = `${file.name} (${sizeLabel})`
+  }
+  if(chatAttachmentBtnEl){
+    chatAttachmentBtnEl.classList.add('has-file')
+  }
+  if(chatAttachmentThumbEl){
+    if(chatAttachmentPreviewUrl){
+      URL.revokeObjectURL(chatAttachmentPreviewUrl)
+    }
+    chatAttachmentPreviewUrl = URL.createObjectURL(file)
+    chatAttachmentThumbEl.innerHTML = `<img src="${chatAttachmentPreviewUrl}" alt="ตัวอย่างรูปภาพ" />`
+  }
+}
+
+function clearAttachment(){
+  chatAttachmentFile = null
+  if(chatAttachmentInputEl){
+    chatAttachmentInputEl.value = ''
+  }
+  if(chatAttachmentBtnEl){
+    chatAttachmentBtnEl.classList.remove('has-file')
+  }
+  if(chatAttachmentPreviewEl){
+    chatAttachmentPreviewEl.hidden = true
+  }
+  if(chatAttachmentNameEl){
+    chatAttachmentNameEl.textContent = ''
+  }
+  if(chatAttachmentThumbEl){
+    if(chatAttachmentPreviewUrl){
+      URL.revokeObjectURL(chatAttachmentPreviewUrl)
+      chatAttachmentPreviewUrl = null
+    }
+    const placeholder = chatAttachmentThumbEl.dataset ? chatAttachmentThumbEl.dataset.placeholder : null
+    if(placeholder !== null && placeholder !== undefined){
+      chatAttachmentThumbEl.innerHTML = placeholder
+    }
   }
 }
 
@@ -379,6 +503,7 @@ async function handleChatSend(e){
   const messageInput = chatMessageInputEl
   if(!messageInput) return
   const message = messageInput.value.trim()
+  const hasAttachment = !!chatAttachmentFile
 
   if(!currentConversationId){
     if(chatFormMsgEl){
@@ -387,17 +512,21 @@ async function handleChatSend(e){
     }
     return
   }
-  if(!message) return
+  if(!message && !hasAttachment) return
 
   if(chatFormMsgEl) chatFormMsgEl.textContent = ''
 
   messageInput.disabled = true
   const originalPlaceholder = messageInput.placeholder
   messageInput.placeholder = 'กำลังส่ง...'
+  if(chatSendBtnEl) chatSendBtnEl.disabled = true
 
   try{
-    await sendMessage(message)
+    await sendMessage({ text: message, file: chatAttachmentFile })
     messageInput.value = ''
+    if(hasAttachment){
+      clearAttachment()
+    }
     if(chatFormMsgEl){
       chatFormMsgEl.textContent = 'ส่งข้อความแล้ว'
       chatFormMsgEl.classList.add('form-msg--success')
@@ -418,6 +547,7 @@ async function handleChatSend(e){
     messageInput.disabled = false
     messageInput.placeholder = originalPlaceholder || 'พิมพ์ข้อความของคุณที่นี่...'
     messageInput.focus()
+    if(chatSendBtnEl) chatSendBtnEl.disabled = false
   }
 }
 
@@ -466,23 +596,63 @@ function renderMessages(messages){
     return
   }
 
-  messages.forEach(msg => {
-    const div = document.createElement('div')
-    div.className = `message ${msg.is_sender ? 'sent' : 'received'}`
+  const userStr = localStorage.getItem('user')
+  const currentUser = userStr ? JSON.parse(userStr) : null
+  const currentUserId = currentUser ? Number(currentUser.id) : null
 
-    const avatarLetter = (msg.sender_name || 'U')[0].toUpperCase()
+  messages.forEach(msg => {
+    const messageType = msg.message_type || (msg.attachment_url ? 'image' : 'text')
+    const resolvedAttachment = msg.attachment_url ? (resolvePublicUrl(msg.attachment_url) || msg.attachment_url) : null
+    const isOwn = typeof msg.is_sender !== 'undefined' ? !!msg.is_sender : (currentUserId && Number(msg.sender_id) === currentUserId)
+    const div = document.createElement('div')
+    div.className = `message ${isOwn ? 'sent' : 'received'}`
+    if(messageType === 'image' && resolvedAttachment){
+      div.classList.add('has-image')
+    }
+
+    const senderName = msg.sender_name || msg.sender_email || (isOwn ? (currentUser?.name || currentUser?.email || 'ฉัน') : 'U')
+    const avatarLetter = senderName ? senderName.trim().charAt(0).toUpperCase() : 'U'
     const timeString = new Date(msg.created_at).toLocaleTimeString('th-TH', {
       hour: '2-digit',
       minute: '2-digit'
     })
 
-    div.innerHTML = `
-      <div class="message-avatar">${avatarLetter}</div>
-      <div class="message-bubble">
-        <div class="message-content">${escapeHtml(msg.message)}</div>
-        <div class="message-time">${timeString}</div>
-      </div>
-    `
+    const avatar = document.createElement('div')
+    avatar.className = 'message-avatar'
+    avatar.textContent = avatarLetter
+
+    const bubble = document.createElement('div')
+    bubble.className = 'message-bubble'
+
+    if(messageType === 'image' && resolvedAttachment){
+      const figure = document.createElement('figure')
+      figure.className = 'message-image'
+      const img = document.createElement('img')
+      img.src = resolvedAttachment
+      img.alt = 'รูปภาพแนบ'
+      img.loading = 'lazy'
+      figure.appendChild(img)
+      bubble.appendChild(figure)
+      if(msg.message){
+        const caption = document.createElement('div')
+        caption.className = 'message-content'
+        caption.innerHTML = escapeHtml(msg.message)
+        bubble.appendChild(caption)
+      }
+    }else{
+      const content = document.createElement('div')
+      content.className = 'message-content'
+      content.innerHTML = escapeHtml(msg.message || '')
+      bubble.appendChild(content)
+    }
+
+    const timeEl = document.createElement('div')
+    timeEl.className = 'message-time'
+    timeEl.textContent = timeString
+    bubble.appendChild(timeEl)
+
+    div.appendChild(avatar)
+    div.appendChild(bubble)
     container.appendChild(div)
   })
 
@@ -490,28 +660,46 @@ function renderMessages(messages){
 }
 
 function escapeHtml(text) {
+  if(text === null || text === undefined) return ''
   const div = document.createElement('div')
   div.textContent = text
   return div.innerHTML
 }
 
-async function sendMessage(message){
+async function sendMessage({ text = '', file = null } = {}){
   if(!currentConversationId) throw new Error('No conversation selected')
   try{
     const token = localStorage.getItem('authToken')
     if(!token) throw new Error('No auth token available')
     const url = phpApi('chat/send_message.php')
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + token
-      },
-      body: JSON.stringify({
-        conversation_id: currentConversationId,
-        message: message
+    let res = null
+    if(file){
+      const formData = new FormData()
+      formData.append('conversation_id', currentConversationId)
+      if(text){
+        formData.append('message', text)
+      }
+      formData.append('file', file)
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + token
+        },
+        body: formData
       })
-    })
+    }else{
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          conversation_id: currentConversationId,
+          message: text
+        })
+      })
+    }
     const j = await res.json().catch(()=>null)
     if(res.ok){
       // refresh messages and conversation list
@@ -1140,20 +1328,37 @@ if(mapContainer && typeof L !== 'undefined'){
     })
   }
 
-    // Chat modal event listeners
-    const chatModal = document.getElementById('chatModal')
-    if(chatModal){
-      // Close modal when clicking backdrop or close button
-      chatModal.addEventListener('click', (e) => {
-        if(e.target.matches('[data-close-modal]') || e.target.closest('[data-close-modal]')){
-          closeModal('chatModal')
-          currentConversationId = null
-          conversationsCache = []
-          resetChatView()
-          document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('selected'))
-        }
+  // Chat modal event listeners
+  const chatModal = document.getElementById('chatModal')
+  if(chatModal){
+    const closeBtn = chatModal.querySelector('.chat-close-btn')
+    if(closeBtn){
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault()
+        closeChatInterface()
       })
-
-      setupChatHandlers()
     }
+    chatModal.addEventListener('click', (e) => {
+      if(e.target.matches('[data-close-modal]') || e.target.closest('[data-close-modal]')){
+        e.preventDefault()
+        closeChatInterface()
+      }
+    })
+    chatModal.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape'){
+        e.preventDefault()
+        closeChatInterface()
+      }
+    })
+
+    setupChatHandlers()
+  }
+
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-close-modal]')
+    if(trigger && trigger.closest('#chatModal')){
+      e.preventDefault()
+      closeChatInterface()
+    }
+  })
 }

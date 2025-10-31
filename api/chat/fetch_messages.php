@@ -62,7 +62,7 @@ if($limit > 200){
     $limit = 200;
 }
 
-$messageStmt = $mysqli->prepare('SELECT id, sender_id, message, created_at FROM listing_messages WHERE conversation_id = ? AND id > ? ORDER BY id ASC LIMIT ?');
+$messageStmt = $mysqli->prepare('SELECT m.id, m.sender_id, m.message, m.created_at, u.name AS sender_name, u.email AS sender_email FROM listing_messages m LEFT JOIN users u ON u.id = m.sender_id WHERE m.conversation_id = ? AND m.id > ? ORDER BY m.id ASC LIMIT ?');
 if(!$messageStmt){
     http_response_code(500);
     echo json_encode(['error' => 'query_prepare_failed']);
@@ -73,11 +73,17 @@ $messageStmt->execute();
 $messageRes = $messageStmt->get_result();
 $messages = [];
 while($row = $messageRes->fetch_assoc()){
+    $parsed = parse_stored_message($row['message']);
     $messages[] = [
         'id' => (int)$row['id'],
         'sender_id' => (int)$row['sender_id'],
-        'message' => $row['message'],
+        'sender_name' => $row['sender_name'] ?? null,
+        'sender_email' => $row['sender_email'] ?? null,
+        'message' => $parsed['text'],
+        'message_type' => $parsed['type'],
+        'attachment_url' => $parsed['attachment_url'],
         'created_at' => $row['created_at'],
+        'is_sender' => ((int)$row['sender_id'] === (int)$user['id'])
     ];
 }
 $messageStmt->close();
@@ -93,3 +99,56 @@ $response = [
 ];
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
+
+function parse_stored_message(string $stored){
+    $type = 'text';
+    $text = $stored;
+    $attachment = null;
+    if(strpos($stored, 'image::') === 0){
+        $payload = substr($stored, 7);
+        $caption = '';
+        $path = $payload;
+        if(strpos($payload, '|') !== false){
+            [$path, $encodedCaption] = explode('|', $payload, 2);
+            $decoded = base64_decode($encodedCaption, true);
+            if($decoded !== false){
+                $caption = $decoded;
+            }
+        }
+        $type = 'image';
+        $attachment = resolve_attachment_public_path($path);
+        $text = $caption;
+    }
+    return [
+        'type' => $type,
+        'text' => $text,
+        'attachment_url' => $attachment
+    ];
+}
+
+function resolve_attachment_public_path(string $path){
+    $trimmed = trim($path);
+    if($trimmed === ''){
+        return null;
+    }
+    if(preg_match('#^https?://#i', $trimmed)){
+        return $trimmed;
+    }
+    $normalized = ltrim($trimmed, '/');
+    if($normalized === ''){
+        return null;
+    }
+    $projectRoot = realpath(__DIR__ . '/../..');
+    if($projectRoot !== false){
+        $normalizedFs = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $normalized);
+        $candidate = $projectRoot . DIRECTORY_SEPARATOR . $normalizedFs;
+        if(file_exists($candidate)){
+            return '/' . $normalized;
+        }
+        $apiCandidate = $projectRoot . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . $normalizedFs;
+        if(file_exists($apiCandidate)){
+            return '/api/' . $normalized;
+        }
+    }
+    return '/' . $normalized;
+}
