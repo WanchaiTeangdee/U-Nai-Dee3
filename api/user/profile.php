@@ -148,9 +148,12 @@ $response = [
         'id' => (int)$userRow['id'],
         'email' => $userRow['email'],
         'name' => $userRow['name'],
+        'phone' => $userRow['phone'],
         'role' => $userRow['role'],
+        'avatar' => $userRow['avatar'],
+        'email_verified' => isset($userRow['email_verified']) ? (int)$userRow['email_verified'] : 0,
         'created_at' => $userRow['created_at'],
-        'last_login' => null
+        'last_login' => $userRow['last_login']
     ],
     'stats' => $stats
 ];

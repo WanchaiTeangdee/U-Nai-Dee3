@@ -37,14 +37,31 @@ $messageQuery = "
 ";
 
 $messageStmt = $mysqli->prepare($messageQuery);
-$messageStmt->bind_param('iiiii', $userId, $userId, $userId, $userId, $limit);
-$messageStmt->execute();
-$messageResult = $messageStmt->get_result();
-
-while($row = $messageResult->fetch_assoc()){
-    $activities[] = $row;
+if($messageStmt){
+    $messageStmt->bind_param('iiiii', $userId, $userId, $userId, $userId, $limit);
+    if($messageStmt->execute()){
+        if(method_exists($messageStmt, 'get_result')){
+            $messageResult = $messageStmt->get_result();
+            if($messageResult instanceof mysqli_result){
+                while($row = $messageResult->fetch_assoc()){
+                    $activities[] = $row;
+                }
+            }
+        } else {
+            $messageStmt->bind_result($type, $timestamp, $description, $referenceId, $metadata);
+            while($messageStmt->fetch()){
+                $activities[] = [
+                    'type' => $type,
+                    'timestamp' => $timestamp,
+                    'description' => $description,
+                    'reference_id' => $referenceId,
+                    'metadata' => $metadata
+                ];
+            }
+        }
+    }
+    $messageStmt->close();
 }
-$messageStmt->close();
 
 // 2. Recent booking requests (as requester or owner)
 $bookingQuery = "
@@ -52,14 +69,15 @@ $bookingQuery = "
         CASE
             WHEN br.requester_id = ? THEN 'booking_sent'
             ELSE 'booking_received'
-        END as type,
-        br.created_at as timestamp,
+        END AS type,
+        br.created_at AS timestamp,
         CASE
             WHEN br.requester_id = ? THEN CONCAT('ส่งคำขอจอง: ', COALESCE(l.title, 'ที่พัก'))
             ELSE CONCAT('ได้รับคำขอจอง: ', COALESCE(l.title, 'ที่พัก'))
-        END as description,
-        br.id as reference_id,
-        JSON_OBJECT('status', br.status, 'listing_title', l.title) as metadata
+        END AS description,
+        br.id AS reference_id,
+        br.status AS booking_status,
+        l.title AS listing_title
     FROM listing_booking_requests br
     LEFT JOIN listings l ON br.listing_id = l.id
     WHERE (br.requester_id = ? OR l.user_id = ?) AND br.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
@@ -68,14 +86,40 @@ $bookingQuery = "
 ";
 
 $bookingStmt = $mysqli->prepare($bookingQuery);
-$bookingStmt->bind_param('iiiii', $userId, $userId, $userId, $userId, $limit);
-$bookingStmt->execute();
-$bookingResult = $bookingStmt->get_result();
-
-while($row = $bookingResult->fetch_assoc()){
-    $activities[] = $row;
+if($bookingStmt){
+    $bookingStmt->bind_param('iiiii', $userId, $userId, $userId, $userId, $limit);
+    if($bookingStmt->execute()){
+        if(method_exists($bookingStmt, 'get_result')){
+            $bookingResult = $bookingStmt->get_result();
+            if($bookingResult instanceof mysqli_result){
+                while($row = $bookingResult->fetch_assoc()){
+                    $metadata = [
+                        'status' => $row['booking_status'] ?? null,
+                        'listing_title' => $row['listing_title'] ?? null
+                    ];
+                    unset($row['booking_status'], $row['listing_title']);
+                    $row['metadata'] = $metadata;
+                    $activities[] = $row;
+                }
+            }
+        } else {
+            $bookingStmt->bind_result($type, $timestamp, $description, $referenceId, $bookingStatus, $listingTitle);
+            while($bookingStmt->fetch()){
+                $activities[] = [
+                    'type' => $type,
+                    'timestamp' => $timestamp,
+                    'description' => $description,
+                    'reference_id' => $referenceId,
+                    'metadata' => [
+                        'status' => $bookingStatus,
+                        'listing_title' => $listingTitle
+                    ]
+                ];
+            }
+        }
+    }
+    $bookingStmt->close();
 }
-$bookingStmt->close();
 
 // 3. Profile updates (mock data for now - in real app, you'd log these)
 $profileActivities = [

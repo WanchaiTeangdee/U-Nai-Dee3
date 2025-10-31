@@ -83,6 +83,22 @@
     submitting: false
   }
 
+  const getAuthToken = () => {
+    const storedToken = localStorage.getItem('authToken')
+    if(storedToken) return storedToken
+    const userStr = localStorage.getItem('user')
+    if(!userStr) return null
+    try{
+      const user = JSON.parse(userStr)
+      if(user && typeof user.token === 'string' && user.token){
+        return user.token
+      }
+    }catch(err){
+      console.warn('profile parse token error', err)
+    }
+    return null
+  }
+
   const formatDateTime = (input) => {
     if(!input) return '-'
     const normalized = typeof input === 'string' && input.includes('T') ? input : String(input).replace(' ', 'T')
@@ -219,7 +235,7 @@
     }, 3000)
   }
 
-  const renderStatsSummary = (stats) => {
+  const renderSummary = (stats = {}) => {
     if(!summaryEl) return
     summaryEl.innerHTML = ''
     if(!stats || Object.keys(stats).length === 0){
@@ -291,7 +307,7 @@
       return
     }
 
-    const token = localStorage.getItem('authToken')
+    const token = getAuthToken()
     if(!token) {
       redirectToHome()
       return
@@ -390,7 +406,8 @@
 
     // Update account status indicator
     if(accountStatusIndicator && statusBadge) {
-      const isVerified = user.email_verified_at || user.verified
+      const emailVerifiedValue = user.email_verified ?? user.email_verified_at ?? user.verified
+      const isVerified = emailVerifiedValue === true || emailVerifiedValue === 'true' || emailVerifiedValue === 1 || emailVerifiedValue === '1'
       const isActive = user.status === 'active' || !user.status
 
       if(isVerified && isActive) {
@@ -434,7 +451,7 @@
   }
 
   const loadProfile = async () => {
-    const token = localStorage.getItem('authToken')
+    const token = getAuthToken()
     if(!token){
       redirectToHome()
       return
@@ -542,7 +559,7 @@
       }
     }
 
-    const token = localStorage.getItem('authToken')
+    const token = getAuthToken()
     if(!token){
       redirectToHome()
       return
@@ -662,30 +679,30 @@
     })
   }
 
-  const getAuthToken = () => {
-    const userStr = localStorage.getItem('user')
-    if(!userStr) return null
-    try {
-      const user = JSON.parse(userStr)
-      return user.token || null
-    } catch {
-      return null
-    }
-  }
-
   const loadRecentActivities = async () => {
     const timelineEl = document.getElementById('activityTimeline')
     if(!timelineEl) return
+
+    const token = getAuthToken()
+    if(!token){
+      renderEmptyActivities()
+      redirectToHome()
+      return
+    }
 
     try {
       const response = await fetch(api('user/activities.php'), {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
 
+      if(response.status === 401 || response.status === 403){
+        redirectToHome()
+        return
+      }
       if(!response.ok) throw new Error('Failed to load activities')
 
       const data = await response.json()
@@ -791,25 +808,39 @@
 
   const loadEmailVerificationStatus = async () => {
     const statusEl = document.getElementById('emailVerificationStatus')
-    const resendBtn = document.getElementById('resendVerificationBtn')
     if(!statusEl) return
+
+    const token = getAuthToken()
+    if(!token){
+      statusEl.textContent = 'กรุณาเข้าสู่ระบบอีกครั้ง'
+      redirectToHome()
+      return
+    }
 
     try {
       const response = await fetch(api('user/profile.php'), {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
 
+      if(response.status === 401 || response.status === 403){
+        redirectToHome()
+        return
+      }
       if(!response.ok) throw new Error('Failed to load profile')
 
       const data = await response.json()
-
-      if(data.success && data.user) {
-        const isVerified = data.user.email_verified === 1 || data.user.email_verified === true
+      const userData = data.user || data
+      if(userData) {
+        const emailVerifiedValue = userData.email_verified ?? userData.email_verified_at ?? userData.verified
+        const isVerified = emailVerifiedValue === true || emailVerifiedValue === 'true' || emailVerifiedValue === 1 || emailVerifiedValue === '1'
+        profileState.user = { ...profileState.user, ...userData, email_verified: isVerified }
         updateVerificationStatus(isVerified)
+      } else {
+        statusEl.textContent = 'ไม่สามารถโหลดข้อมูลได้'
       }
     } catch (error) {
       console.error('Error loading verification status:', error)
@@ -929,6 +960,7 @@
   const handleLogout = () => {
     if(confirm('คุณต้องการออกจากระบบหรือไม่?')) {
       // Clear local storage
+      localStorage.removeItem('authToken')
       localStorage.removeItem('user')
       // Redirect to home
       window.location.href = 'index.html'
