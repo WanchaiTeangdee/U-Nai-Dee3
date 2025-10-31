@@ -77,7 +77,16 @@ switch($method){
     $stmt->bind_param('ssss', $name, $email, $hashedPassword, $role);
     
     if($stmt->execute()){
-      echo json_encode(['success' => true, 'id' => $mysqli->insert_id]);
+      echo json_encode([
+        'success' => true,
+        'user' => [
+          'id' => (int)$mysqli->insert_id,
+          'name' => $name,
+          'email' => $email,
+          'role' => $role,
+          'created_at' => date('Y-m-d H:i:s'),
+        ]
+      ]);
     } else {
       http_response_code(500);
       echo json_encode(['error' => 'Failed to create user']);
@@ -90,6 +99,7 @@ switch($method){
     $name = trim($input['name'] ?? '');
     $email = trim($input['email'] ?? '');
     $role = $input['role'] ?? '';
+    $password = trim($input['password'] ?? '');
 
     if(!$id || empty($name) || empty($email)){
       http_response_code(400);
@@ -119,11 +129,25 @@ switch($method){
       exit;
     }
 
-    $stmt = $mysqli->prepare("UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?");
-    $stmt->bind_param('sssi', $name, $email, $role, $id);
+    if(!empty($password)){
+      $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+      $stmt = $mysqli->prepare("UPDATE users SET name = ?, email = ?, role = ?, password = ? WHERE id = ?");
+      $stmt->bind_param('ssssi', $name, $email, $role, $hashedPassword, $id);
+    } else {
+      $stmt = $mysqli->prepare("UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?");
+      $stmt->bind_param('sssi', $name, $email, $role, $id);
+    }
     
     if($stmt->execute()){
-      echo json_encode(['success' => true]);
+      echo json_encode([
+        'success' => true,
+        'user' => [
+          'id' => $id,
+          'name' => $name,
+          'email' => $email,
+          'role' => $role,
+        ]
+      ]);
     } else {
       http_response_code(500);
       echo json_encode(['error' => 'Failed to update user']);
@@ -137,6 +161,12 @@ switch($method){
     if(!$id){
       http_response_code(400);
       echo json_encode(['error' => 'ID is required']);
+      exit;
+    }
+
+    if($id === (int)$auth['id']){
+      http_response_code(400);
+      echo json_encode(['error' => 'You cannot delete your own admin account']);
       exit;
     }
 

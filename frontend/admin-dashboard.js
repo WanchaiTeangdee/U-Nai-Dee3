@@ -51,6 +51,27 @@ const DEFAULT_HEADERS = {
   ...(authToken ? { 'Authorization': 'Bearer ' + authToken } : {})
 }
 
+const userModalEl = document.getElementById('userModal')
+const userForm = document.getElementById('userForm')
+const userFormMessage = document.getElementById('userFormMessage')
+const userModalTitle = document.getElementById('userModalTitle')
+const userFormSubmit = document.getElementById('userFormSubmit')
+const userIdInput = document.getElementById('userId')
+const userNameInput = document.getElementById('userName')
+const userEmailInput = document.getElementById('userEmail')
+const userRoleSelect = document.getElementById('userRole')
+const userPasswordInput = document.getElementById('userPassword')
+const passwordHint = document.getElementById('passwordHint')
+const addUserBtn = document.getElementById('addUserBtn')
+const confirmModalEl = document.getElementById('confirmDeleteModal')
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn')
+const confirmErrorEl = document.getElementById('confirmError')
+const confirmMessageEl = document.getElementById('confirmMessage')
+
+let usersCache = []
+let userFormMode = 'create'
+let pendingDeleteUserId = null
+
 // remove old events localStorage key (events feature removed)
 try{ localStorage.removeItem('admin_dashboard_events_v1') }catch(e){}
 
@@ -320,17 +341,248 @@ async function updateListingStatus(listingId, newStatus, controls){
 
 async function loadUsers(){
   const data = await fetchJson(phpApi('admin/users.php'), { headers: DEFAULT_HEADERS })
-  renderTable('adminUsers', data?.users || [], (tr, user)=>{
+  usersCache = Array.isArray(data?.users) ? data.users : []
+  renderTable('adminUsers', usersCache, (tr, user)=>{
+    tr.dataset.userId = user.id
     tr.appendChild(textCell(user.name || '-'))
     tr.appendChild(textCell(user.email))
     tr.appendChild(textCell(ROLE_LABELS[user.role] || user.role || '-'))
     tr.appendChild(textCell(user.created_at || '-'))
+    const actionTd = document.createElement('td')
+    actionTd.className = 'actions-cell'
+    const editBtn = document.createElement('button')
+    editBtn.type = 'button'
+    editBtn.className = 'action-btn'
+    editBtn.textContent = 'แก้ไข'
+    editBtn.addEventListener('click', () => openUserModal('edit', user))
+    const deleteBtn = document.createElement('button')
+    deleteBtn.type = 'button'
+    deleteBtn.className = 'action-btn danger'
+    deleteBtn.textContent = 'ลบ'
+    deleteBtn.addEventListener('click', () => openConfirmDelete(user))
+    actionTd.appendChild(editBtn)
+    actionTd.appendChild(deleteBtn)
+    tr.appendChild(actionTd)
   })
   const totalUsersEl = document.getElementById('statTotalUsers')
   if(totalUsersEl) totalUsersEl.textContent = data?.counts?.total_users ?? (data?.users?.length ?? 0)
   const newUsersEl = document.getElementById('statNewUsers')
   if(newUsersEl) newUsersEl.textContent = data?.counts?.new_users_today ?? 0
 }
+
+function toggleModal(modalEl, isOpen){
+  if(!modalEl) return
+  modalEl.hidden = !isOpen
+  document.body.style.overflow = isOpen ? 'hidden' : ''
+}
+
+function resetUserForm(){
+  if(!userForm) return
+  userForm.reset()
+  if(userIdInput) userIdInput.value = ''
+  setUserFormMessage('')
+}
+
+function setUserFormMessage(message, type = 'error'){
+  if(!userFormMessage) return
+  userFormMessage.textContent = message || ''
+  userFormMessage.classList.remove('success')
+  if(type === 'success' && message){
+    userFormMessage.classList.add('success')
+  }
+}
+
+function configurePasswordFieldForMode(mode){
+  if(!userPasswordInput || !passwordHint) return
+  if(mode === 'create'){
+    userPasswordInput.required = true
+    userPasswordInput.placeholder = ''
+    passwordHint.textContent = 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'
+  } else {
+    userPasswordInput.required = false
+    userPasswordInput.value = ''
+    userPasswordInput.placeholder = 'เว้นว่างหากไม่เปลี่ยนรหัสผ่าน'
+    passwordHint.textContent = 'หากไม่ต้องการเปลี่ยนรหัสผ่าน ให้เว้นว่างช่องนี้'
+  }
+}
+
+function openUserModal(mode, user){
+  if(!userModalEl || !userForm) return
+  userFormMode = mode === 'edit' ? 'edit' : 'create'
+  resetUserForm()
+  configurePasswordFieldForMode(userFormMode)
+  if(userModalTitle){
+    userModalTitle.textContent = userFormMode === 'create' ? 'เพิ่มผู้ใช้' : 'แก้ไขข้อมูลผู้ใช้'
+  }
+  if(userFormSubmit){
+    userFormSubmit.textContent = userFormMode === 'create' ? 'สร้างผู้ใช้' : 'บันทึกการเปลี่ยนแปลง'
+    userFormSubmit.disabled = false
+  }
+  if(userFormMode === 'edit' && user){
+    if(userIdInput) userIdInput.value = user.id
+    if(userNameInput) userNameInput.value = user.name || ''
+    if(userEmailInput) userEmailInput.value = user.email || ''
+    if(userRoleSelect) userRoleSelect.value = user.role || 'customer'
+  } else {
+    if(userRoleSelect) userRoleSelect.value = 'customer'
+  }
+  toggleModal(userModalEl, true)
+  if(userNameInput){
+    setTimeout(() => userNameInput.focus(), 50)
+  }
+}
+
+function closeUserModal(){
+  toggleModal(userModalEl, false)
+}
+
+function openConfirmDelete(user){
+  if(!confirmModalEl || !confirmDeleteBtn) return
+  pendingDeleteUserId = user?.id || null
+  if(confirmMessageEl){
+    const roleLabel = ROLE_LABELS[user?.role] || user?.role || ''
+    confirmMessageEl.innerHTML = `คุณต้องการลบผู้ใช้ <strong>${user?.name || '-'}</strong> (${user?.email || '-'}) หรือไม่?<br/>บทบาท: ${roleLabel}`
+  }
+  if(confirmErrorEl) confirmErrorEl.textContent = ''
+  confirmDeleteBtn.disabled = false
+  toggleModal(confirmModalEl, true)
+}
+
+function closeConfirmModal(){
+  toggleModal(confirmModalEl, false)
+  pendingDeleteUserId = null
+  if(confirmErrorEl) confirmErrorEl.textContent = ''
+}
+
+async function adminUserRequest(method, payload){
+  const options = {
+    method,
+    headers: DEFAULT_HEADERS
+  }
+  if(payload && method !== 'GET'){
+    options.body = JSON.stringify(payload)
+  }
+  const res = await fetch(phpApi('admin/users.php'), options)
+  const data = await res.json().catch(()=>null)
+  if(!res.ok){
+    const message = data?.error || 'ไม่สามารถดำเนินการได้'
+    throw new Error(message)
+  }
+  return data
+}
+
+function attachUserManagementHandlers(){
+  if(!userForm || !userModalEl) return
+
+  addUserBtn?.addEventListener('click', () => openUserModal('create'))
+
+  userForm.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if(!userFormSubmit) return
+    const name = (userNameInput?.value || '').trim()
+    const email = (userEmailInput?.value || '').trim()
+    const role = userRoleSelect?.value || 'customer'
+    const password = userPasswordInput?.value || ''
+
+    if(!name || !email){
+      setUserFormMessage('กรุณากรอกชื่อและอีเมลให้ครบถ้วน')
+      return
+    }
+    if(userFormMode === 'create' && password.length < 8){
+      setUserFormMessage('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร')
+      return
+    }
+
+    setUserFormMessage('')
+    userFormSubmit.disabled = true
+    const originalText = userFormSubmit.textContent
+    userFormSubmit.textContent = 'กำลังบันทึก...'
+    try{
+      if(userFormMode === 'create'){
+        await adminUserRequest('POST', { name, email, role, password })
+      }else{
+        const id = Number(userIdInput?.value || 0)
+        if(!id){
+          throw new Error('ไม่พบข้อมูลผู้ใช้ที่ต้องการแก้ไข')
+        }
+        const payload = { id, name, email, role }
+        if(password){
+          if(password.length < 8){
+            throw new Error('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร')
+          }
+          payload.password = password
+        }
+        await adminUserRequest('PUT', payload)
+      }
+      await loadUsers()
+      setUserFormMessage('บันทึกเรียบร้อย', 'success')
+      setTimeout(() => closeUserModal(), 300)
+    }catch(err){
+      console.error('user form submit error', err)
+      setUserFormMessage(err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล')
+      userFormSubmit.disabled = false
+      userFormSubmit.textContent = originalText
+      return
+    }
+    userFormSubmit.disabled = false
+    userFormSubmit.textContent = originalText
+  })
+
+  const closeButtons = document.querySelectorAll('[data-close-modal]')
+  closeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(btn.closest('#userModal')) closeUserModal()
+      if(btn.closest('#confirmDeleteModal')) closeConfirmModal()
+    })
+  })
+
+  if(userModalEl){
+    userModalEl.addEventListener('click', (event) => {
+      if(event.target === userModalEl){
+        closeUserModal()
+      }
+    })
+  }
+
+  if(confirmModalEl){
+    confirmModalEl.addEventListener('click', (event) => {
+      if(event.target === confirmModalEl){
+        closeConfirmModal()
+      }
+    })
+  }
+
+  window.addEventListener('keydown', (event) => {
+    if(event.key === 'Escape'){
+      if(!userModalEl?.hidden){
+        closeUserModal()
+      }else if(!confirmModalEl?.hidden){
+        closeConfirmModal()
+      }
+    }
+  })
+
+  confirmDeleteBtn?.addEventListener('click', async () => {
+    if(!pendingDeleteUserId) return
+    confirmDeleteBtn.disabled = true
+    confirmDeleteBtn.textContent = 'กำลังลบ...'
+    if(confirmErrorEl) confirmErrorEl.textContent = ''
+    try{
+      await adminUserRequest('DELETE', { id: pendingDeleteUserId })
+      await loadUsers()
+      confirmDeleteBtn.disabled = false
+      confirmDeleteBtn.textContent = 'ลบผู้ใช้'
+      closeConfirmModal()
+    }catch(err){
+      console.error('delete user error', err)
+      confirmDeleteBtn.disabled = false
+      confirmDeleteBtn.textContent = 'ลบผู้ใช้'
+      if(confirmErrorEl) confirmErrorEl.textContent = err.message || 'ลบผู้ใช้ไม่สำเร็จ'
+    }
+  })
+}
+
+attachUserManagementHandlers()
 
 async function loadListings(){
   const data = await fetchJson(phpApi('admin/listings.php'), { headers: DEFAULT_HEADERS })

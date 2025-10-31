@@ -56,11 +56,11 @@
       padding: 2rem 1rem 4rem;
     }
 
-    .admin-header {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: var(--border-radius-xl);
-      padding: 2rem;
+.admin-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--border-radius-xl);
+  padding: 2rem;
       margin-bottom: 2rem;
       box-shadow: var(--shadow-xl);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -72,11 +72,11 @@
 
     .admin-header:hover {
       transform: translateY(-2px);
-      box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    }
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  }
 
-    .admin-title {
-      font-size: 2rem;
+  .admin-title {
+    font-size: 2rem;
       font-weight: 700;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       -webkit-background-clip: text;
@@ -112,6 +112,47 @@
       box-shadow: var(--shadow-lg);
       background: var(--primary);
       color: white;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--border-radius-lg);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-danger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--border-radius-lg);
+      border: none;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     .dashboard-grid {
@@ -310,6 +351,41 @@
       line-height: 1.5;
     }
 
+    .admin-card table td.actions-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--primary-dark);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: var(--shadow);
+    }
+
+    .action-btn.danger {
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #dc2626;
+    }
+
+    .action-btn.danger:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+
     .admin-card table tbody tr {
       transition: all 0.2s ease;
     }
@@ -330,6 +406,134 @@
       background: rgba(255, 255, 255, 0.5);
       border-radius: var(--border-radius-lg);
       margin-top: 1rem;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+    }
+
+    .modal-backdrop[hidden] {
+      display: none !important;
+    }
+
+    .modal-panel {
+      background: #fff;
+      border-radius: var(--border-radius-xl);
+      padding: 2rem;
+      width: min(520px, 100%);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+      position: relative;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary-dark);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .modal-panel h2 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.35rem;
+      color: var(--primary-dark);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-field span {
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .form-field input,
+    .form-field select {
+      padding: 0.75rem;
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      background: rgba(248, 250, 252, 0.9);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+      background: #fff;
+    }
+
+    .form-hint {
+      margin: 0 0 0.75rem;
+      font-size: 0.85rem;
+      color: var(--gray-500);
+    }
+
+    .form-message {
+      min-height: 20px;
+      font-size: 0.9rem;
+      color: var(--error);
+      margin-bottom: 0.75rem;
+    }
+
+    .form-message.success {
+      color: var(--success);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .modal-actions .btn-outline {
+      border-color: rgba(99, 102, 241, 0.25);
+      color: var(--primary-dark);
+    }
+
+    .confirm-panel {
+      max-width: 420px;
+      text-align: center;
     }
 
     @media (max-width: 1024px) {
@@ -370,6 +574,20 @@
       .admin-content {
         grid-template-columns: 1fr;
         gap: 1rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-actions {
+        flex-direction: column-reverse;
+      }
+
+      .modal-actions .btn-primary,
+      .modal-actions .btn-outline,
+      .modal-actions .btn-danger {
+        width: 100%;
       }
     }
 
@@ -432,13 +650,13 @@
           <a href="admin-users.html" class="active">
             <span class="nav-emoji">👥</span>
             Tenants
-          </a>
-          <a href="admin-issues.html">
-            <span class="nav-emoji">📈</span>
-            Reports
-          </a>
-        </nav>
-      </aside>
+        </a>
+        <a href="admin-issues.html">
+          <span class="nav-emoji">📈</span>
+          Reports
+        </a>
+      </nav>
+    </aside>
 
       <main class="admin-content main-col">
         <section class="admin-card" id="adminUsers">
@@ -449,10 +667,13 @@
             </svg>
             โปรไฟล์ผู้ใช้ทั้งหมด
           </h3>
+          <div class="card-actions">
+            <button type="button" class="btn-primary" id="addUserBtn">+ เพิ่มผู้ใช้</button>
+          </div>
           <div class="table-container">
           <table>
             <thead>
-              <tr><th>ชื่อ</th><th>อีเมล</th><th>บทบาท</th><th>สมัครเมื่อ</th></tr>
+              <tr><th>ชื่อ</th><th>อีเมล</th><th>บทบาท</th><th>สมัครเมื่อ</th><th style="width:140px">การจัดการ</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -462,6 +683,57 @@
       </main>
     </div>
   </div>
+
+  <div class="modal-backdrop" id="userModal" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
+      <button type="button" class="modal-close-btn" data-close-modal>&times;</button>
+      <h2 id="userModalTitle">เพิ่มผู้ใช้</h2>
+      <form id="userForm">
+        <input type="hidden" id="userId" />
+        <div class="form-grid">
+          <label class="form-field">
+            <span>ชื่อผู้ใช้</span>
+            <input type="text" id="userName" required />
+          </label>
+          <label class="form-field">
+            <span>อีเมล</span>
+            <input type="email" id="userEmail" required />
+          </label>
+          <label class="form-field">
+            <span>บทบาท</span>
+            <select id="userRole" required>
+              <option value="customer">ลูกค้า</option>
+              <option value="landlord">ผู้ปล่อยเช่า</option>
+              <option value="admin">แอดมิน</option>
+            </select>
+          </label>
+          <label class="form-field" id="passwordField">
+            <span>รหัสผ่าน</span>
+            <input type="password" id="userPassword" minlength="8" />
+          </label>
+        </div>
+        <p class="form-hint" id="passwordHint">รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร</p>
+        <div id="userFormMessage" class="form-message" role="alert"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-outline" data-close-modal>ยกเลิก</button>
+          <button type="submit" class="btn-primary" id="userFormSubmit">บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmDeleteModal" hidden>
+    <div class="modal-panel confirm-panel" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <h2 id="confirmTitle">ยืนยันการลบผู้ใช้</h2>
+      <p id="confirmMessage">คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+      <div id="confirmError" class="form-message" role="alert"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-outline" data-close-modal>ยกเลิก</button>
+        <button type="button" class="btn-danger" id="confirmDeleteBtn">ลบผู้ใช้</button>
+      </div>
+    </div>
+  </div>
+
   <script src="admin-dashboard.js"></script>
 </body>
 </html>
