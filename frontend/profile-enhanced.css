@@ -63,29 +63,6 @@
 .profile-card h3 { line-height: 1.35; }
 .profile-card p { line-height: 1.45; }
 
-/* Main Layout - 3 Column Grid */
-.profile-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr 340px;
-  gap: var(--profile-space-16);
-  align-items: start;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.profile-sidebar {
-  grid-column: 1;
-}
-
-.profile-main {
-  grid-column: 2;
-  display: block;
-}
-
-.profile-summary {
-  grid-column: 3;
-}
 
 /* Responsive Layout */
 @media (max-width: 1024px) {
@@ -134,7 +111,7 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: var(--profile-radius);
-  box-shadow: var(--profile-shadow);
+  box-shadow: var(--profile-shadow-lg);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
 }
@@ -169,13 +146,13 @@
 .nav-link:hover {
   background: var(--profile-gray-50);
   color: var(--profile-primary);
-  /* Removed transform for cleaner look */
+  transform: translateX(4px);
 }
 
 .nav-link.active {
   background: var(--profile-primary);
   color: white;
-  /* Removed box-shadow for cleaner look */
+  box-shadow: var(--profile-shadow);
 }
 
 .nav-link.active svg {
@@ -214,12 +191,17 @@
 .btn-logout:hover {
   background: #dc2626;
   border-color: #dc2626;
-  /* Removed transform and box-shadow for cleaner look */
+  transform: translateY(-1px);
+  box-shadow: var(--profile-shadow);
 }
 
 .btn-logout svg {
   flex-shrink: 0;
   transition: transform 0.2s ease;
+}
+
+.btn-logout:hover svg {
+  transform: translateX(2px);
 }
 
 /* Content Sections */
@@ -265,7 +247,7 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: var(--profile-radius);
-  box-shadow: var(--profile-shadow);
+  box-shadow: var(--profile-shadow-lg);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -274,8 +256,8 @@
 }
 
 .profile-card:hover {
-  /* Removed transform for cleaner look */
-  box-shadow: var(--profile-shadow-md);
+  transform: translateY(-2px);
+  box-shadow: var(--profile-shadow-xl);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -392,7 +374,12 @@
 }
 
 /* Visual Grouping */
-/* Removed gradient backgrounds and shadows for cleaner look */
+.account-details-grid > :nth-child(odd) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(6, 182, 212, 0.08));
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  animation: slideInLeft 0.6s ease-out;
+}
 
 .account-details-grid > :nth-child(even) {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(239, 68, 68, 0.08));
@@ -432,7 +419,8 @@
 
 .detail-item:hover {
   background: rgba(255, 255, 255, 0.9);
-  /* Removed transform and box-shadow for cleaner look */
+  transform: translateX(4px) scale(1.02);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
   border-color: rgba(99, 102, 241, 0.4);
   z-index: 2;
 }
@@ -459,6 +447,11 @@
   color: white;
   box-shadow: var(--profile-shadow-sm);
   transition: all 0.3s ease;
+}
+
+.detail-item:hover .detail-icon {
+  transform: scale(1.1);
+  box-shadow: var(--profile-shadow);
 }
 
 .detail-content {
@@ -539,7 +532,8 @@
 }
 
 .stat-item:hover {
-  /* Removed transform and box-shadow for cleaner look */
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--profile-shadow-md);
   border-color: rgba(99, 102, 241, 0.3);
 }
 
@@ -560,6 +554,11 @@
   color: white;
   box-shadow: var(--profile-shadow);
   transition: all 0.3s ease;
+}
+
+.stat-item:hover .stat-icon {
+  transform: scale(1.1);
+  box-shadow: var(--profile-shadow-md);
 }
 
 .stat-value {
@@ -811,6 +810,11 @@
   box-shadow: var(--profile-shadow);
 }
 
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--profile-shadow-md);
+}
+
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -905,6 +909,11 @@
   box-shadow: var(--profile-shadow-lg);
   overflow: hidden;
   transition: all 0.2s ease;
+}
+
+.settings-card:hover {
+  box-shadow: var(--profile-shadow-xl);
+  transform: translateY(-1px);
 }
 
 .settings-card .card-header {
@@ -1021,8 +1030,16 @@
   transition: transform 0.2s ease;
 }
 
+.btn-outline:hover svg {
+  transform: translateX(2px);
+}
+
 .btn-danger svg {
   transition: transform 0.2s ease;
+}
+
+.btn-danger:hover svg {
+  transform: translateX(2px);
 }
 
 .btn-danger {
@@ -2075,8 +2092,6 @@
   }
 }
 
-/* Commented out old conflicting styles */
-/*
 .account-card .account-details-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -2101,6 +2116,11 @@
   transform: translateY(-4px);
   border-color: rgba(99, 102, 241, 0.45);
   box-shadow: 0 26px 45px -24px rgba(79, 70, 229, 0.55);
+}
+
+.detail-item::after,
+.account-details-grid::before {
+  display: none !important;
 }
 
 .detail-item-primary {
@@ -2158,10 +2178,7 @@
 .detail-content dd strong {
   font-weight: inherit;
 }
-*/
 
-/* Commented out old responsive styles */
-/*
 @media (max-width: 768px) {
   .account-card .card-content {
     padding: 20px 22px;
@@ -2182,7 +2199,6 @@
     height: 18px;
   }
 }
-*/
 
 /* Hero Section */
 .profile-hero {
@@ -2242,8 +2258,12 @@
 }
 
 .avatar-upload-btn:hover {
-  /* Removed transform for cleaner look */
+  transform: scale(1.1);
   background: var(--profile-primary-dark);
+}
+
+.avatar-upload-btn:active {
+  transform: scale(0.95);
 }
 
 .avatar-circle {
@@ -2262,6 +2282,11 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+}
+
+.avatar-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .avatar-circle.uploading {
@@ -2375,3 +2400,101 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================
+   FIXED PROFILE LAYOUT (2 Columns)
+   ================================ */
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr; /* ✅ จากเดิมมี 3 คอลัมน์ */
+  gap: var(--profile-space-16);
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.profile-sidebar {
+  grid-column: 1;
+}
+
+.profile-main {
+  grid-column: 2;
+  display: block;
+}
+
+/* Responsive Layout - Tablet */
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr; /* ✅ ซ้อนเป็นคอลัมน์เดียวในแท็บเล็ต */
+    gap: var(--profile-space-16);
+  }
+
+  .profile-sidebar,
+  .profile-main {
+    grid-column: 1;
+  }
+
+  .profile-sidebar {
+    position: static;
+  }
+}
+
+/* Responsive Layout - Mobile */
+@media (max-width: 768px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    gap: var(--profile-space-12);
+  }
+
+  .profile-sidebar {
+    order: 2; /* ✅ ย้าย sidebar ไว้ล่างสุดในมือถือ */
+  }
+
+  .profile-main {
+    order: 1;
+  }
+}
+ 
+/* ===== Layout polish for Overview ===== */
+.profile-hero .container,
+.profile-content .profile-layout { 
+  max-width: 1200px; 
+  margin: 0 auto; 
+  padding: 0 20px; 
+}
+
+/* กริดภาพรวม (ซ้าย: ข้อมูลบัญชี / ขวา: สถิติ) */
+.overview-grid{
+  display: grid;
+  grid-template-columns: minmax(380px, 1.1fr) 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ให้การ์ดสองฝั่งสูงใกล้เคียง/ยืดตามคอนเทนต์ */
+.profile-card.account-card,
+.profile-card.stats-card{
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+/* เว้นวรรคเนื้อหาการ์ดกระชับ */
+.profile-card .card-content{ padding: 18px; }
+
+/* ปรับสถิติให้กะทัดรัดขึ้น และเลขเด่นอ่านง่าย */
+.stats-grid{ 
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  gap: 18px; 
+}
+.stat-item{ padding: 14px 12px; }
+.stat-value{ font-size: 2.4rem; line-height: 1; }
+.stat-label{ letter-spacing: .04em; }
+
+/* จอเล็ก: สลับเป็น 1 คอลัมน์ */
+@media (max-width: 1024px){
+  .overview-grid{ grid-template-columns: 1fr; }
+}
+

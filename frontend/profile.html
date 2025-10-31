@@ -232,7 +232,51 @@
                 <div class="card-header">
                   <div class="card-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 19V6L21 3V16M9 19C9 20.1046 8.10457 21 7 21C5.89543 21 5 20.1046 5 19C5 17.8954 5.89543 17 7 17C8.10457 17 9 17.8954 9 19ZM9 19L21 16M21 16C21 17
+                      <path d="M4 20H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M7 16V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M12 16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M17 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M7 10L12 6L17 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3 id="statsTitle">สถิติการใช้งาน</h3>
+                </div>
+                <div class="card-content">
+                  <p>ติดตามภาพรวมการประกาศและคำขอล่าสุดของคุณ</p>
+                  <div id="profileSummary" class="stats-grid">
+                    <script>
+                      (function(){
+                        const box = document.getElementById('profileSummary');
+                        if(!box) return;
+                        const stats = [
+                          { icon:'📢', value:2, label:'ประกาศทั้งหมด' },
+                          { icon:'✅', value:2, label:'ประกาศเผยแพร่' },
+                          { icon:'🗓️', value:0, label:'คำขอทั้งหมด' },
+                          { icon:'💬', value:3, label:'บทสนทนาทั้งหมด' },
+                        ];
+                        box.innerHTML = stats.map(s => `
+                          <div class="stat-item">
+                            <div class="stat-icon">${s.icon}</div>
+                            <div class="stat-value">${s.value}</div>
+                            <div class="stat-label">${s.label}</div>
+                          </div>
+                        `).join('');
+                      })();
+                    </script>
+
+                    <div class="empty-state">
+                      <div class="loading-spinner"></div>
+                      <p>กำลังโหลดข้อมูลสถิติ...</p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Edit Profile Section -->
+          <div id="edit-profile" class="content-section">
+            <div class="section-header">
               <h2>แก้ไขโปรไฟล์</h2>
               <p>ปรับข้อมูลส่วนตัวและการตั้งค่าบัญชีของคุณ</p>
             </div>
