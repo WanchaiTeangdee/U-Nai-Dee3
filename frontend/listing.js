@@ -107,7 +107,7 @@ const modalNodes = {
   bookingStatus: document.getElementById('bookingStatus'),
   contactButton: document.getElementById('contactOwnerBtn'),
   bookingButton: document.getElementById('bookNowBtn'),
-  // chatButton: document.getElementById('chatOwnerBtn'),
+  chatButton: document.getElementById('chatOwnerBtn'),
   // chatModal: document.getElementById('chatModal'),
   // chatMessages: document.getElementById('chatMessages'),
   // chatForm: document.getElementById('chatForm'),
@@ -154,22 +154,215 @@ const ensureConversation = async () => {
   return null;
 };
 
-const setupChatFeature = () => {
-  // Stub for environments where the full chat UI/markup is not present.
-  // If a chat button exists, leave it functional but don't throw.
+const ensureListingConversationThread = async () => {
+  if(!listingState.id) return null;
   try{
-    if(!modalNodes.chatButton) return;
-    // If chat is intentionally disabled, keep button hidden.
-    // Otherwise, provide a safe click handler that prompts login if needed.
-    const btn = modalNodes.chatButton;
-    btn.onclick = (e) => {
-      e.preventDefault();
-      // If there is a function to open the auth panel, use it; otherwise do nothing.
+    const headers = { 'Content-Type': 'application/json', ...getAuthHeaders() };
+    const res = await fetch(phpApiDetail('chat/get_or_create_thread.php'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ listing_id: listingState.id })
+    });
+    let data = null;
+    try{
+      data = await res.json();
+    }catch(parseErr){
+      data = null;
+    }
+    if(res.ok){
+      const conversation = data && data.conversation ? data.conversation : null;
+      if(conversation && typeof conversation.id !== 'undefined'){
+        return Number(conversation.id);
+      }
+      return null;
+    }
+    const err = new Error((data && data.error) || `HTTP ${res.status}`);
+    err.status = res.status;
+    err.code = data && data.error ? data.error : null;
+    throw err;
+  }catch(err){
+    throw err;
+  }
+};
+
+const openChatWithOwner = async (btn) => {
+  const original = btn.dataset.defaultLabel || btn.textContent || 'แชทกับเจ้าของ';
+  btn.disabled = true;
+  btn.textContent = 'กำลังเปิด...';
+  try{
+    const conversationId = await ensureListingConversationThread();
+    const chatModalEl = document.getElementById('chatModal');
+    if(!chatModalEl){
+      const missingErr = new Error('chat_modal_missing');
+      missingErr.code = 'chat_modal_missing';
+      throw missingErr;
+    }
+    if(typeof setupChatHandlers === 'function'){
+      setupChatHandlers();
+    }
+    if(typeof openModal === 'function'){
+      openModal('chatModal');
+    }else{
+      chatModalEl.setAttribute('aria-hidden', 'false');
+    }
+    let conversations = [];
+    if(typeof loadConversations === 'function'){
+      conversations = await loadConversations();
+    }
+    let targetId = conversationId;
+    if(!targetId && Array.isArray(conversations)){
+      const match = conversations.find((conv) => {
+        if(!conv) return false;
+        const listingMatch = typeof conv.listing_id !== 'undefined' && Number(conv.listing_id) === Number(listingState.id);
+        if(listingMatch) return true;
+        return false;
+      });
+      if(match){
+        targetId = match.id;
+      }
+    }
+    if(targetId && typeof selectConversation === 'function'){
+      await selectConversation(targetId);
+    }else if(Array.isArray(conversations) && conversations.length > 0 && typeof selectConversation === 'function'){
+      await selectConversation(conversations[0].id);
+    }else if(typeof resetChatView === 'function'){
+      resetChatView();
+    }
+    setTimeout(() => {
+      const messageInput = document.getElementById('chatMessage');
+      if(messageInput){
+        messageInput.focus();
+      }
+    }, 120);
+    return true;
+  }catch(err){
+    console.error('openChatWithOwner error', err);
+    if(err.status === 401){
+      alert('กรุณาเข้าสู่ระบบเพื่อแชทกับเจ้าของ');
       if(typeof openAuthPanel === 'function') openAuthPanel('login');
-      else if(typeof window.showLogin === 'function') window.showLogin();
-      else console.log('chat button clicked but chat feature is not enabled');
+      else window.location.href = 'login.html';
+    }else if(err.code === 'customer_only' || err.status === 403){
+      alert('เฉพาะผู้ใช้ที่เป็นลูกค้าสามารถแชทกับเจ้าของได้');
+    }else if(err.code === 'owner_cannot_initiate'){
+      alert('ไม่สามารถเปิดแชทได้เพราะคุณเป็นเจ้าของประกาศนี้');
+    }else if(err.code === 'chat_modal_missing'){
+      alert('ไม่พบหน้าต่างสนทนาบนหน้านี้');
+    }else{
+      alert('ไม่สามารถเปิดกล่องข้อความได้ กรุณาลองใหม่');
+    }
+    return false;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+};
+
+const bindAuthGuards = () => {
+  document.querySelectorAll('[data-requires-auth]').forEach((el) => {
+    if(el.dataset.authGuardBound === 'true') return;
+    el.addEventListener('click', (event) => {
+      const user = getCurrentUser();
+      const loggedIn = !!(user && user.id);
+      if(loggedIn) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if(typeof openAuthPanel === 'function'){
+        openAuthPanel('login');
+      }else{
+        window.location.href = 'login.html';
+      }
+      alert('กรุณาเข้าสู่ระบบก่อนใช้งานฟังก์ชันนี้');
+    }, true);
+    el.dataset.authGuardBound = 'true';
+  });
+};
+
+const ensureChatModalCloseHandlers = () => {
+  const modal = document.getElementById('chatModal');
+  if(!modal || modal.dataset.listingCloseBound === 'true') return;
+
+  const performClose = (event) => {
+    if(event && typeof event.preventDefault === 'function'){
+      event.preventDefault();
+    }
+    if(typeof closeChatInterface === 'function'){
+      closeChatInterface();
+    }else if(typeof closeModal === 'function'){
+      closeModal('chatModal');
+    }else{
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  };
+
+  const closeBtn = modal.querySelector('.chat-close-btn');
+  if(closeBtn){
+    closeBtn.addEventListener('click', performClose);
+  }
+
+  modal.addEventListener('click', (event) => {
+    if(event.target.matches('[data-close-modal]') || event.target.closest('[data-close-modal]')){
+      performClose(event);
+    }
+  });
+
+  modal.addEventListener('keydown', (event) => {
+    if(event.key === 'Escape'){
+      performClose(event);
+    }
+  });
+
+  modal.dataset.listingCloseBound = 'true';
+};
+
+const setupChatFeature = () => {
+  bindAuthGuards();
+
+  const btn = modalNodes.chatButton;
+  if(!btn) return;
+  if(!btn.dataset.defaultLabel){
+    btn.dataset.defaultLabel = btn.textContent || 'แชทกับเจ้าของ';
+  }
+  btn.hidden = false;
+  btn.disabled = false;
+  btn.textContent = btn.dataset.defaultLabel;
+  btn.onclick = null;
+
+  if(!listingState.id || !listingState.ownerId){
+    btn.hidden = true;
+    return;
+  }
+
+  if(!currentUser){
+    btn.hidden = false;
+    btn.textContent = 'เข้าสู่ระบบเพื่อแชท';
+    btn.onclick = (event) => {
+      event.preventDefault();
+      if(typeof openAuthPanel === 'function') openAuthPanel('login');
+      else window.location.href = 'login.html';
     };
-  }catch(err){ console.warn('setupChatFeature stub error', err) }
+    return;
+  }
+
+  const normalizedRole = (currentUser.role || '').toString().trim().toLowerCase();
+  const isOwnerViewing = Number(currentUser.id) === Number(listingState.ownerId);
+  if(isOwnerViewing){
+    btn.hidden = true;
+    btn.onclick = null;
+    return;
+  }
+  if(['landlord', 'host', 'admin'].includes(normalizedRole)){
+    btn.hidden = true;
+    btn.onclick = null;
+    return;
+  }
+
+  btn.hidden = false;
+  btn.textContent = btn.dataset.defaultLabel;
+  btn.onclick = async (event) => {
+    event.preventDefault();
+    ensureChatModalCloseHandlers();
+    await openChatWithOwner(btn);
+  };
 };
 
 const getCurrentUser = () => {
@@ -813,10 +1006,11 @@ const loadListing = async () => {
 document.addEventListener('DOMContentLoaded', () => {
   loadListing();
   setupBookingAction();
+  setupChatFeature();
 });
 
 document.addEventListener('auth:changed', () => {
-  // setupChatFeature(); // Chat feature disabled
+  setupChatFeature();
 });
 
 document.addEventListener('keydown', (event) => {
