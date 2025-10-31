@@ -45,6 +45,46 @@ button {
   margin: 0 auto;
 }
 
+.profile-auth-gate {
+  margin-bottom: 28px;
+  padding: 32px 28px;
+  border-radius: var(--profile-radius-lg);
+  border: 1px solid var(--profile-panel-border);
+  background: #ffffff;
+  box-shadow: var(--profile-shadow);
+  text-align: center;
+}
+
+.profile-auth-gate h2 {
+  margin: 0 0 12px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #14345c;
+}
+
+.profile-auth-gate p {
+  margin: 0;
+  color: var(--profile-muted);
+  font-size: 16px;
+}
+
+.profile-auth-gate .gate-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-auth-gate .gate-actions .btn-primary,
+.profile-auth-gate .gate-actions .btn-outline {
+  min-width: 140px;
+}
+
+.profile-wrapper.auth-required .profile-panel {
+  display: none;
+}
+
 .profile-title {
   margin: 0 0 24px;
   font-weight: 600;
@@ -418,6 +458,20 @@ button {
 
   .profile-shell {
     padding: 36px 16px 60px;
+  }
+
+  .profile-auth-gate {
+    padding: 24px 20px;
+  }
+
+  .profile-auth-gate .gate-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .profile-auth-gate .gate-actions .btn-primary,
+  .profile-auth-gate .gate-actions .btn-outline {
+    width: 100%;
   }
 
   .profile-panel {

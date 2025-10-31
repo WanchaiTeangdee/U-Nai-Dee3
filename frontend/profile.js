@@ -65,6 +65,39 @@
   }
 
   const api = ensureApi()
+  const profileWrapper = document.querySelector('.profile-wrapper')
+  const profilePanel = document.querySelector('.profile-panel')
+  const authGate = document.getElementById('profileAuthGate')
+
+  let authPromptMode = null
+
+  const ensureAuthPanel = (mode = 'login') => {
+    if(typeof openAuthPanel !== 'function') return
+    const desired = mode === 'register' ? 'register' : 'login'
+    requestAnimationFrame(() => openAuthPanel(desired))
+  }
+
+  const showAuthRequired = (mode = 'login') => {
+    const desired = mode === 'register' ? 'register' : 'login'
+    if(profilePanel) profilePanel.hidden = true
+    if(authGate) authGate.hidden = false
+    if(profileWrapper) profileWrapper.classList.add('auth-required')
+    if(authPromptMode !== desired) {
+      authPromptMode = desired
+      ensureAuthPanel(desired)
+    }
+  }
+
+  const hideAuthRequired = () => {
+    authPromptMode = null
+    if(profilePanel) profilePanel.hidden = false
+    if(authGate) authGate.hidden = true
+    if(profileWrapper) profileWrapper.classList.remove('auth-required')
+  }
+
+  const redirectToHome = () => {
+    showAuthRequired('login')
+  }
 
   const avatarEl = document.getElementById('profileAvatar')
   const avatarUploadBtn = document.getElementById('avatarUploadBtn')
@@ -1053,16 +1086,33 @@
     history.replaceState(null, null, `#${sectionId}`)
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const userStr = localStorage.getItem('user')
-    if(!userStr){
-      redirectToHome()
-      return
-    }
+  const initializeProfileData = () => {
     loadProfile()
     loadRecentActivities()
     loadAccountSettings()
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
     setupSidebarNavigation()
+    const hasUser = Boolean(localStorage.getItem('user'))
+    const token = getAuthToken()
+    if(!hasUser || !token){
+      showAuthRequired('login')
+      return
+    }
+    hideAuthRequired()
+    initializeProfileData()
+  })
+
+  document.addEventListener('auth:changed', () => {
+    const hasUser = Boolean(localStorage.getItem('user'))
+    const token = getAuthToken()
+    if(!hasUser || !token){
+      showAuthRequired('login')
+      return
+    }
+    hideAuthRequired()
+    initializeProfileData()
   })
 
   document.addEventListener('profile:bookingsLoaded', (event) => {
