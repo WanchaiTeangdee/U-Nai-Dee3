@@ -8,6 +8,9 @@
   --accent-2: #986A33; /* Accent dark */
   --neutral: #BEBEBE;
   --bg: #FFFFFF;
+  --profile-blue-light: #22b2ff;
+  --profile-blue-dark: #0f7bff;
+  --profile-green: #44c776;
 
   /* backward-compatible alias used across stylesheet */
   --accent: var(--primary);
@@ -34,6 +37,29 @@ h3{font-weight:500}
 .site-header .container{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
 .logo{font-weight:700;color:var(--accent)}
 .top-nav a{margin-left:16px;color:#666;text-decoration:none}
+
+.profile-appbar{background:linear-gradient(97deg,#22b2ff 0%,#0f7bff 100%);color:#fff;box-shadow:0 14px 36px rgba(27,124,255,0.28)}
+.appbar-inner{max-width:1120px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.appbar-brand{font-weight:700;font-size:24px;letter-spacing:0.02em}
+.appbar-nav{display:flex;align-items:center;gap:18px;flex:1 1 auto}
+.appbar-nav a{position:relative;display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;border-radius:999px;font-weight:500;text-decoration:none;color:rgba(255,255,255,0.92);transition:background .2s ease,color .2s ease}
+.appbar-nav a:hover,.appbar-nav a:focus-visible{background:rgba(255,255,255,0.18);color:#fff}
+.appbar-nav .is-active{background:rgba(255,255,255,0.24);color:#fff}
+.appbar-account{display:flex;align-items:center;gap:12px}
+.link-muted{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;text-decoration:none;font-weight:500;color:rgba(255,255,255,0.88);transition:background .2s ease}
+.link-muted:hover,.link-muted:focus-visible{background:rgba(255,255,255,0.18);color:#fff}
+.user-chip{display:inline-flex;align-items:center;gap:12px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,0.22);color:#fff}
+.chip-avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.28);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.chip-text{display:flex;flex-direction:column;line-height:1.1}
+.user-chip .user-name{font-weight:600;text-decoration:none;color:inherit}
+.user-chip .user-role{font-size:12px;opacity:.85}
+.chip-logout{background:rgba(255,255,255,0.22);border:none;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:500;color:inherit;cursor:pointer;transition:background .2s ease}
+.chip-logout:hover,.chip-logout:focus-visible{background:rgba(255,255,255,0.32)}
+@media(max-width:720px){
+  .appbar-inner{justify-content:center}
+  .appbar-nav{order:3;width:100%;justify-content:center}
+  .appbar-account{order:2;width:100%;justify-content:flex-end;flex-wrap:wrap}
+}
 
 .hero{background: transparent;padding:40px 0}
 .hero h1{margin:0;font-size:32px;text-align:center}

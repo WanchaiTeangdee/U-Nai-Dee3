@@ -10,22 +10,27 @@
   
 </head>
 <body>
-  <header class="site-header">
-    <div class="container">
-      <div class="logo">U-Nai Dee</div>
-      <nav class="top-nav">
-        <!-- <a href="#">ประกาศจากแอดมิน</a> -->
-        <a id="loginLink" href="#" data-open-modal="login">เข้าสู่ระบบ</a>
-        <a id="registerLink" href="#" data-open-modal="register">สมัครสมาชิก</a>
-    <a id="landlordLink" href="landlord-dashboard.html" style="display:none">แดชบอร์ดผู้ปล่อยเช่า</a>
-    <a id="chatBtn" href="#" style="display:none">กล่องข้อความ</a>
+  <header class="profile-appbar">
+    <div class="appbar-inner">
+      <div class="appbar-brand">U-Nai Dee</div>
+      <nav class="appbar-nav" aria-label="การนำทางหลัก">
+        <a href="index.html" class="is-active">หน้าหลัก</a>
+        <a id="landlordLink" href="landlord-dashboard.html" style="display:none">แดชบอร์ดผู้ปล่อยเช่า</a>
+        <a id="chatBtn" href="#" style="display:none">กล่องข้อความ</a>
         <a id="adminLink" href="admin-dashboard.html" style="display:none">แดชบอร์ดแอดมิน</a>
-        <span id="userStatus" class="user-status" style="display:none">
-          <a class="user-name" href="profile.html"></a>
-          <span class="user-role"></span>
-          <button id="logoutBtn" type="button" class="btn-ghost">ออกจากระบบ</button>
-        </span>
       </nav>
+      <div class="appbar-account">
+        <a id="loginLink" class="link-muted" href="#" data-open-modal="login">เข้าสู่ระบบ</a>
+        <a id="registerLink" class="link-muted" href="#" data-open-modal="register">สมัครสมาชิก</a>
+        <span id="userStatus" class="user-chip" style="display:none">
+          <span class="chip-avatar" aria-hidden="true">U</span>
+          <span class="chip-text">
+            <a class="user-name" href="profile.html"></a>
+            <span class="user-role"></span>
+          </span>
+          <button id="logoutBtn" type="button" class="chip-logout">ออกจากระบบ</button>
+        </span>
+      </div>
     </div>
   </header>
 

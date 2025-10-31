@@ -77,6 +77,7 @@ function renderUserStatus(){
   const chatBtn = document.getElementById('chatBtn')
   const roleLabel = userStatus ? userStatus.querySelector('.user-role') : null
   const nameLink = userStatus ? userStatus.querySelector('.user-name') : null
+  const chipAvatar = userStatus ? userStatus.querySelector('.chip-avatar') : null
   if(!userStr){
     if(userStatus) userStatus.style.display = 'none'
     if(nameLink){
@@ -86,6 +87,9 @@ function renderUserStatus(){
     if(roleLabel){
       roleLabel.textContent = ''
       roleLabel.style.display = 'none'
+    }
+    if(chipAvatar){
+      chipAvatar.textContent = 'U'
     }
     if(loginLink) loginLink.style.display = 'inline'
     if(registerLink) registerLink.style.display = 'inline'
@@ -100,6 +104,10 @@ function renderUserStatus(){
     if(nameLink){
       nameLink.textContent = user.name || user.email || ''
       nameLink.setAttribute('href', 'profile.html')
+    }
+    if(chipAvatar){
+      const displayName = user.name || user.email || ''
+      chipAvatar.textContent = displayName ? displayName.trim().charAt(0).toUpperCase() : 'U'
     }
     if(roleLabel){
       const label = ROLE_LABELS[user.role] || user.role || ''
