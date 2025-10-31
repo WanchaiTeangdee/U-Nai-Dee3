@@ -12,3 +12,5 @@ Auth API:
 - Login: POST /api/login.php { email, password } -> returns token saved to localStorage as `authToken`
 
 DB schema for users/tokens: `schema/db_users_tokens.sql` (import into phpMyAdmin)
+
+ฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟ
