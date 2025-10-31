@@ -21,6 +21,33 @@
     admin: 'แอดมิน'
   }
 
+  const ACCOUNT_STATUS_CONTENT = {
+    verified: {
+      badge: 'ยืนยันแล้ว',
+      message: 'บัญชีของคุณพร้อมใช้งาน',
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`
+    },
+    pending: {
+      badge: 'รอการยืนยัน',
+      message: 'กรุณายืนยันอีเมลเพื่อความปลอดภัยของบัญชี',
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 8V12L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`
+    },
+    suspended: {
+      badge: 'ถูกระงับ',
+      message: 'โปรดติดต่อผู้ดูแลเพื่อปลดล็อกบัญชีของคุณ',
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`
+    }
+  }
+
   const ensureApi = () => {
     if(typeof phpApi === 'function'){
       return phpApi
@@ -55,7 +82,9 @@
 
   // Account status indicator elements
   const accountStatusIndicator = document.querySelector('.account-status-indicator')
-  const statusBadge = document.querySelector('.status-badge')
+  const statusBadge = document.getElementById('accountStatusBadge')
+  const statusMessage = document.getElementById('accountStatusMessage')
+  const statusIconWrapper = document.querySelector('.account-status-indicator .status-icon')
 
   // Display elements in hero section
   const displayNameEl = document.getElementById('profileDisplayName')
@@ -410,19 +439,27 @@
       const isVerified = emailVerifiedValue === true || emailVerifiedValue === 'true' || emailVerifiedValue === 1 || emailVerifiedValue === '1'
       const isActive = user.status === 'active' || !user.status
 
-      if(isVerified && isActive) {
-        statusBadge.textContent = 'ยืนยันแล้ว'
-        statusBadge.className = 'status-badge status-verified'
-        accountStatusIndicator.hidden = false
-      } else if(!isActive) {
-        statusBadge.textContent = 'ถูกระงับ'
-        statusBadge.className = 'status-badge status-suspended'
-        accountStatusIndicator.hidden = false
-      } else {
-        statusBadge.textContent = 'รอการยืนยัน'
-        statusBadge.className = 'status-badge status-pending'
-        accountStatusIndicator.hidden = false
+      let statusKey = 'pending'
+      if(!isActive){
+        statusKey = 'suspended'
+      } else if(isVerified){
+        statusKey = 'verified'
       }
+
+      const content = ACCOUNT_STATUS_CONTENT[statusKey] || ACCOUNT_STATUS_CONTENT.pending
+      statusBadge.textContent = content.badge
+      statusBadge.className = `status-badge status-${statusKey}`
+      if(statusMessage){
+        statusMessage.textContent = content.message
+      }
+      if(statusIconWrapper){
+        statusIconWrapper.innerHTML = content.icon
+      }
+      accountStatusIndicator.classList.remove('status-verified', 'status-pending', 'status-suspended')
+      accountStatusIndicator.classList.add(`status-${statusKey}`)
+      accountStatusIndicator.hidden = false
+    } else if(accountStatusIndicator){
+      accountStatusIndicator.hidden = true
     }
 
     // Update display elements in hero section

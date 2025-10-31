@@ -40,23 +40,10 @@ $messageStmt = $mysqli->prepare($messageQuery);
 if($messageStmt){
     $messageStmt->bind_param('iiiii', $userId, $userId, $userId, $userId, $limit);
     if($messageStmt->execute()){
-        if(method_exists($messageStmt, 'get_result')){
-            $messageResult = $messageStmt->get_result();
-            if($messageResult instanceof mysqli_result){
-                while($row = $messageResult->fetch_assoc()){
-                    $activities[] = $row;
-                }
-            }
-        } else {
-            $messageStmt->bind_result($type, $timestamp, $description, $referenceId, $metadata);
-            while($messageStmt->fetch()){
-                $activities[] = [
-                    'type' => $type,
-                    'timestamp' => $timestamp,
-                    'description' => $description,
-                    'reference_id' => $referenceId,
-                    'metadata' => $metadata
-                ];
+        $messageResult = $messageStmt->get_result();
+        if($messageResult instanceof mysqli_result){
+            while($row = $messageResult->fetch_assoc()){
+                $activities[] = $row;
             }
         }
     }
@@ -89,32 +76,16 @@ $bookingStmt = $mysqli->prepare($bookingQuery);
 if($bookingStmt){
     $bookingStmt->bind_param('iiiii', $userId, $userId, $userId, $userId, $limit);
     if($bookingStmt->execute()){
-        if(method_exists($bookingStmt, 'get_result')){
-            $bookingResult = $bookingStmt->get_result();
-            if($bookingResult instanceof mysqli_result){
-                while($row = $bookingResult->fetch_assoc()){
-                    $metadata = [
-                        'status' => $row['booking_status'] ?? null,
-                        'listing_title' => $row['listing_title'] ?? null
-                    ];
-                    unset($row['booking_status'], $row['listing_title']);
-                    $row['metadata'] = $metadata;
-                    $activities[] = $row;
-                }
-            }
-        } else {
-            $bookingStmt->bind_result($type, $timestamp, $description, $referenceId, $bookingStatus, $listingTitle);
-            while($bookingStmt->fetch()){
-                $activities[] = [
-                    'type' => $type,
-                    'timestamp' => $timestamp,
-                    'description' => $description,
-                    'reference_id' => $referenceId,
-                    'metadata' => [
-                        'status' => $bookingStatus,
-                        'listing_title' => $listingTitle
-                    ]
+        $bookingResult = $bookingStmt->get_result();
+        if($bookingResult instanceof mysqli_result){
+            while($row = $bookingResult->fetch_assoc()){
+                $metadata = [
+                    'status' => $row['booking_status'] ?? null,
+                    'listing_title' => $row['listing_title'] ?? null
                 ];
+                unset($row['booking_status'], $row['listing_title']);
+                $row['metadata'] = $metadata;
+                $activities[] = $row;
             }
         }
     }
