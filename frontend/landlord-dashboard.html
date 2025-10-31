@@ -7,23 +7,23 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
-    body{margin:0;background:linear-gradient(180deg,#f2f8ff 0%,#f8fbff 40%,#fefeff 100%);font-family:'Poppins','Noto Sans Thai','Sarabun',sans-serif;color:#123}
+    body{margin:0;background:linear-gradient(180deg,#f2f8ff 0%,#f8fbff 40%,#fefeff 100%);font-family:'Kanit','Noto Sans Thai','Sarabun',sans-serif;color:#123}
     .landlord-shell{max-width:1000px;margin:0 auto;padding:38px 18px 96px 18px}
     .landlord-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
-    .landlord-header h1{font-size:28px;font-weight:700;margin:0;color:#0b5c97}
+    .landlord-header h1{font-size:28px;font-weight:700;margin:0;color:#1E5F99}
     .landlord-header p{margin:6px 0 0 0;color:#5a6f85;font-size:14px}
-    .landlord-header a{font-size:14px;text-decoration:none;color:#0b9bd7;padding:8px 14px;border-radius:16px;border:1px solid rgba(11,155,215,0.2);background:#fff;box-shadow:0 10px 20px rgba(9,114,177,0.08);transition:transform 140ms ease, box-shadow 140ms ease}
+    .landlord-header a{font-size:14px;text-decoration:none;color:#3DA5FF;padding:8px 14px;border-radius:16px;border:1px solid rgba(11,155,215,0.2);background:#fff;box-shadow:0 10px 20px rgba(9,114,177,0.08);transition:transform 140ms ease, box-shadow 140ms ease}
     .landlord-header a:hover{transform:translateY(-1px);box-shadow:0 18px 32px rgba(9,114,177,0.14)}
   .card{background:rgba(255,255,255,0.95);border-radius:22px;box-shadow:0 24px 60px rgba(15,101,160,0.16);margin-bottom:26px;border:1px solid rgba(255,255,255,0.6);backdrop-filter:blur(6px);overflow:hidden}
   .card:not(.collapsible){padding:30px}
   .card.collapsible .card-body{padding:26px 28px;display:flex;flex-direction:column;gap:18px}
   .card.collapsible{padding:0}
   .card-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid rgba(11,155,215,0.1);background:linear-gradient(180deg,#f6fbff 0%,#eaf3ff 100%)}
-  .card-title{font-size:22px;font-weight:600;color:#0b5c97;display:inline-flex;align-items:center;gap:10px}
+  .card-title{font-size:22px;font-weight:600;color:#1E5F99;display:inline-flex;align-items:center;gap:10px}
   .card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:none;padding:0;color:inherit;font:inherit;cursor:pointer}
   .card-toggle:focus-visible{outline:3px solid rgba(11,155,215,0.3);outline-offset:3px}
   .card-toggle-icon{width:22px;height:22px;border-radius:50%;border:1px solid rgba(11,155,215,0.25);display:inline-flex;align-items:center;justify-content:center;position:relative;transition:transform 160ms ease, background-color 160ms ease}
-  .card-toggle-icon::before,.card-toggle-icon::after{content:'';position:absolute;background:#0b5c97;border-radius:2px;transition:transform 160ms ease}
+  .card-toggle-icon::before,.card-toggle-icon::after{content:'';position:absolute;background:#1E5F99;border-radius:2px;transition:transform 160ms ease}
   .card-toggle-icon::before{width:10px;height:2px}
   .card-toggle-icon::after{width:2px;height:10px}
   .card[data-collapsible][data-collapsed="true"] .card-toggle-icon::after{transform:scaleY(0)}
@@ -37,7 +37,7 @@
     .input-control:focus{border-color:#20a7e4;box-shadow:0 0 0 4px rgba(35,159,235,0.14);outline:none}
     textarea.input-control{min-height:130px;resize:vertical}
     .map-card{margin-top:26px;background:linear-gradient(180deg,#f6fbff 0%,#f1f7ff 100%);border:1px solid rgba(11,155,215,0.12);border-radius:20px;padding:22px}
-    .map-card h3{margin:0 0 6px 0;font-size:16px;font-weight:600;color:#0b5c97}
+    .map-card h3{margin:0 0 6px 0;font-size:16px;font-weight:600;color:#1E5F99}
     .map-card p{margin:0 0 16px 0;font-size:13px;color:#5d7084}
     .landlord-map{height:280px;border-radius:16px;border:1px solid rgba(11,155,215,0.22);overflow:hidden;box-shadow:0 12px 28px rgba(14,96,152,0.12)}
     .map-actions{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
@@ -46,20 +46,20 @@
     .actions{margin-top:28px;display:flex;gap:14px;flex-wrap:wrap}
     .btn-primary{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;border-radius:12px;background:linear-gradient(135deg,#1ab0ec 0%,#108fd0 100%);color:#fff;border:none;font-weight:600;cursor:pointer;box-shadow:0 16px 32px rgba(17,145,213,0.24);transition:transform 140ms ease, box-shadow 140ms ease}
     .btn-primary:hover{transform:translateY(-1px);box-shadow:0 20px 36px rgba(17,145,213,0.28)}
-    .btn-outline{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:12px;border:2px solid #0b9bd7;color:#0b9bd7;background:#fff;font-weight:600;cursor:pointer;transition:background-color 140ms ease, box-shadow 140ms ease}
+    .btn-outline{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:12px;border:2px solid #3DA5FF;color:#3DA5FF;background:#fff;font-weight:600;cursor:pointer;transition:background-color 140ms ease, box-shadow 140ms ease}
     .btn-outline:hover{background:rgba(11,155,215,0.1);box-shadow:0 12px 28px rgba(11,155,215,0.12)}
     .btn-sm{padding:9px 14px;font-size:13px}
     .notice{margin-top:14px;font-size:14px;color:#0a7;background:rgba(45,180,126,0.12);padding:10px 16px;border-radius:10px;border:1px solid rgba(45,180,126,0.2)}
     .error{margin-top:14px;font-size:14px;color:#d64545;background:rgba(255,87,87,0.08);padding:10px 16px;border-radius:10px;border:1px solid rgba(255,87,87,0.22)}
-    .edit-banner{margin-top:12px;font-size:13px;color:#0b5c97;background:rgba(11,155,215,0.12);padding:12px 16px;border-radius:12px;border:1px solid rgba(11,155,215,0.24);display:flex;flex-direction:column;gap:4px}
+    .edit-banner{margin-top:12px;font-size:13px;color:#1E5F99;background:rgba(11,155,215,0.12);padding:12px 16px;border-radius:12px;border:1px solid rgba(11,155,215,0.24);display:flex;flex-direction:column;gap:4px}
     table{width:100%;border-collapse:separate;border-spacing:0;margin-top:16px;font-size:14px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 14px 32px rgba(15,101,160,0.14)}
     th,td{padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:left}
-    th{background:linear-gradient(180deg,#f2f9ff 0%,#e8f3ff 100%);color:#0b5c97;font-weight:600}
+    th{background:linear-gradient(180deg,#f2f9ff 0%,#e8f3ff 100%);color:#1E5F99;font-weight:600}
     tr:last-child td{border-bottom:none}
     td .table-sub{display:block;font-size:12px;color:#6e8194;margin-top:6px}
-  .table-chip{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;margin:4px;border-radius:999px;background:rgba(11,155,215,0.12);color:#0b5c97;font-size:12px;font-weight:600}
+  .table-chip{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;margin:4px;border-radius:999px;background:rgba(11,155,215,0.12);color:#1E5F99;font-size:12px;font-weight:600}
   .table-chip--muted{background:rgba(108,127,143,0.14);color:#5d7084}
-  .table-action-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:10px;border:1px solid rgba(11,155,215,0.4);background:#fff;color:#0b5c97;font-size:13px;font-weight:600;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease}
+  .table-action-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:10px;border:1px solid rgba(11,155,215,0.4);background:#fff;color:#1E5F99;font-size:13px;font-weight:600;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease}
   .table-action-btn:hover{transform:translateY(-1px);box-shadow:0 12px 20px rgba(11,155,215,0.16);border-color:rgba(11,155,215,0.6)}
   tr.is-editing{background:rgba(11,155,215,0.08)}
     .image-upload{margin-top:30px;background:linear-gradient(180deg,#f8fbff 0%,#f2f9ff 100%);padding:22px;border-radius:18px;border:1px solid rgba(11,155,215,0.1)}
@@ -74,11 +74,11 @@
     .amenity-label{font-size:13px;font-weight:600;color:#345;margin-bottom:10px;display:block}
     .amenity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
   .amenity-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(11,155,215,0.18);border-radius:14px;background:#fff;font-size:13px;color:#32506a;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease}
-  .amenity-item input{accent-color:#0b9bd7}
+  .amenity-item input{accent-color:#3DA5FF}
   .amenity-item span{pointer-events:none}
   .amenity-item input:checked + span{font-weight:600}
   .amenity-item input:checked ~ span{font-weight:600}
-  .amenity-item input:checked + span, .amenity-item input:checked ~ span{color:#0b5c97}
+  .amenity-item input:checked + span, .amenity-item input:checked ~ span{color:#1E5F99}
   .amenity-item input:checked{outline:none}
   .amenity-item.active-state{background:linear-gradient(135deg,rgba(16,143,208,0.18) 0%,rgba(16,143,208,0.06) 100%);border-color:rgba(16,143,208,0.42);box-shadow:0 14px 24px rgba(16,143,208,0.16);transform:translateY(-1px)}
     .amenities-other{margin-top:14px}
@@ -87,16 +87,16 @@
   .contact-channel-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
   .channel-pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid rgba(11,155,215,0.22);background:#fff;color:#2f4f66;font-size:13px;font-weight:600;cursor:pointer;transition:transform 120ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease}
   .channel-pill input{display:none}
-  .channel-pill.active{background:linear-gradient(135deg,rgba(16,143,208,0.18) 0%,rgba(16,143,208,0.06) 100%);border-color:rgba(16,143,208,0.42);color:#0b5c97;box-shadow:0 12px 22px rgba(16,143,208,0.14);transform:translateY(-1px)}
+  .channel-pill.active{background:linear-gradient(135deg,rgba(16,143,208,0.18) 0%,rgba(16,143,208,0.06) 100%);border-color:rgba(16,143,208,0.42);color:#1E5F99;box-shadow:0 12px 22px rgba(16,143,208,0.14);transform:translateY(-1px)}
   .contact-input-wrapper{margin-top:12px;display:grid;gap:10px}
   .contact-chip{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;border:1px solid rgba(11,155,215,0.16);background:rgba(255,255,255,0.92);box-shadow:0 14px 30px rgba(11,155,215,0.08)}
   .contact-chip-header{display:flex;align-items:center;justify-content:space-between}
-  .contact-chip-label{font-size:13px;font-weight:600;color:#0b5c97}
+  .contact-chip-label{font-size:13px;font-weight:600;color:#1E5F99}
   .contact-chip-remove{background:transparent;border:none;color:#a4b4c4;font-size:16px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:8px;transition:color 120ms ease, background-color 120ms ease}
   .contact-chip-remove:hover{color:#d64545;background:rgba(255,87,87,0.12)}
   .contact-chip input{padding:10px 12px;border-radius:10px;border:1px solid #ccd8e4;font-size:13px;font-family:inherit}
   .contact-chip input:focus{border-color:#20a7e4;box-shadow:0 0 0 3px rgba(35,159,235,0.14);outline:none}
-    .status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(11,155,215,0.12);color:#0b5c97}
+    .status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(11,155,215,0.12);color:#1E5F99}
     .status-pending{background:rgba(255,165,0,0.16);color:#d35400}
     .status-active{background:rgba(16,172,132,0.16);color:#0e8a5f}
     .status-inactive{background:rgba(128,128,128,0.16);color:#555}
@@ -249,50 +249,13 @@
           <div class="booking-requests-main">
             <div id="bookingRequestsContainer"></div>
           </div>
-          <aside class="booking-requests-aside" aria-labelledby="confirmedGuestsTitle">
-            <h3 id="confirmedGuestsTitle">การจองที่ยืนยันแล้ว</h3>
-            <div id="confirmedGuests" class="booking-confirmed"></div>
-          </aside>
         </div>
       </div>
     </section>
 
-  <section class="card collapsible" id="messagesSection" data-collapsible data-collapsed="true" aria-labelledby="messagesTitle">
-      <header class="card-header">
-        <button type="button" class="card-toggle" data-target="messagesContent" aria-expanded="true" aria-controls="messagesContent">
-          <span class="card-title" id="messagesTitle" role="heading" aria-level="2">กล่องข้อความจากผู้สนใจเช่า</span>
-          <span class="card-toggle-icon" aria-hidden="true"></span>
-        </button>
-      </header>
-      <div class="card-body" id="messagesContent" role="region" aria-labelledby="messagesTitle">
-        <p class="card-desc">ตอบกลับผู้เช่าที่ติดต่อเข้ามาผ่านระบบแชทนี้ได้โดยตรง</p>
-        <div class="messages-shell">
-        <aside class="messages-sidebar" aria-label="รายการบทสนทนา">
-          <div class="messages-toolbar">
-            <button id="refreshConversationsBtn" type="button" class="btn-outline btn-sm">รีเฟรช</button>
-          </div>
-          <div id="conversationList" class="conversation-list" role="listbox" aria-label="บทสนทนา"></div>
-          <div id="conversationEmpty" class="messages-empty" hidden>ยังไม่มีผู้เช่าติดต่อเข้ามา</div>
-        </aside>
-        <section class="messages-thread" aria-labelledby="conversationTitle">
-          <header class="thread-header">
-            <h3 id="conversationTitle">เลือกบทสนทนา</h3>
-            <div id="conversationMeta" class="thread-meta"></div>
-          </header>
-          <div id="conversationMessages" class="thread-messages" aria-live="polite"></div>
-          <form id="conversationForm" class="thread-form" aria-hidden="true">
-            <textarea id="conversationInput" rows="2" placeholder="พิมพ์ข้อความ..." disabled></textarea>
-            <div class="thread-actions">
-              <div id="conversationStatus" class="form-msg" aria-live="polite"></div>
-              <button type="submit" class="btn-primary" disabled>ส่งข้อความ</button>
-            </div>
-          </form>
-        </section>
-      </div>
-      </div>
-    </section>
   </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
   <script src="landlord-dashboard.js"></script>
 </body>
 </html>
+

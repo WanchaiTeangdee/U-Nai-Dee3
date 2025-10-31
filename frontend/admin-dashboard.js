@@ -325,169 +325,11 @@ async function loadUsers(){
     tr.appendChild(textCell(user.email))
     tr.appendChild(textCell(ROLE_LABELS[user.role] || user.role || '-'))
     tr.appendChild(textCell(user.created_at || '-'))
-    // Add actions column
-    const actionsTd = document.createElement('td')
-    actionsTd.className = 'action-buttons'
-    const editBtn = document.createElement('button')
-    editBtn.className = 'action-btn edit'
-    editBtn.textContent = 'แก้ไข'
-    editBtn.onclick = () => openUserModal(user)
-    const deleteBtn = document.createElement('button')
-    deleteBtn.className = 'action-btn delete'
-    deleteBtn.textContent = 'ลบ'
-    deleteBtn.onclick = () => deleteUser(user.id)
-    actionsTd.appendChild(editBtn)
-    actionsTd.appendChild(deleteBtn)
-    tr.appendChild(actionsTd)
   })
   const totalUsersEl = document.getElementById('statTotalUsers')
   if(totalUsersEl) totalUsersEl.textContent = data?.counts?.total_users ?? (data?.users?.length ?? 0)
   const newUsersEl = document.getElementById('statNewUsers')
   if(newUsersEl) newUsersEl.textContent = data?.counts?.new_users_today ?? 0
-}
-
-// User CRUD functions
-let currentEditingUser = null
-
-function openUserModal(user = null) {
-  currentEditingUser = user
-  const modal = document.getElementById('userModal')
-  const title = document.getElementById('modalTitle')
-  const form = document.getElementById('userForm')
-  const passwordGroup = document.getElementById('passwordGroup')
-
-  if (user) {
-    title.textContent = 'แก้ไขผู้ใช้'
-    document.getElementById('userName').value = user.name || ''
-    document.getElementById('userEmail').value = user.email || ''
-    document.getElementById('userRole').value = user.role || 'customer'
-    passwordGroup.style.display = 'none'
-  } else {
-    title.textContent = 'เพิ่มผู้ใช้ใหม่'
-    form.reset()
-    document.getElementById('userRole').value = 'customer'
-    passwordGroup.style.display = 'block'
-  }
-
-  modal.style.display = 'flex'
-  document.body.style.overflow = 'hidden'
-}
-
-function closeUserModal() {
-  const modal = document.getElementById('userModal')
-  modal.style.display = 'none'
-  document.body.style.overflow = ''
-  currentEditingUser = null
-}
-
-// Toast notification system
-function showToast(message, type = 'success') {
-  const toastContainer = document.getElementById('toastContainer')
-  if (!toastContainer) return
-
-  const toast = document.createElement('div')
-  toast.className = `toast ${type}`
-
-  const iconSvg = type === 'success'
-    ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`
-    : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`
-
-  toast.innerHTML = `
-    <div class="toast-icon">${iconSvg}</div>
-    <div class="toast-message">${message}</div>
-    <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
-  `
-
-  toastContainer.appendChild(toast)
-
-  // Auto remove after 5 seconds
-  setTimeout(() => {
-    if (toast.parentElement) {
-      toast.style.animation = 'slideOutRight 0.3s ease-out'
-      setTimeout(() => toast.remove(), 300)
-    }
-  }, 5000)
-}
-
-async function saveUser() {
-  const saveBtn = document.getElementById('saveBtn')
-  const btnText = saveBtn.querySelector('.btn-text')
-  const spinner = saveBtn.querySelector('.btn-spinner')
-
-  // Show loading state
-  saveBtn.disabled = true
-  btnText.style.display = 'none'
-  spinner.style.display = 'flex'
-
-  try {
-    const name = document.getElementById('userName').value.trim()
-    const email = document.getElementById('userEmail').value.trim()
-    const role = document.getElementById('userRole').value
-    const password = document.getElementById('userPassword').value
-
-    if (!name || !email) {
-      showToast('กรุณากรอกชื่อและอีเมล', 'error')
-      return
-    }
-
-    if (!currentEditingUser && !password) {
-      showToast('กรุณากรอกรหัสผ่าน', 'error')
-      return
-    }
-
-    const data = { name, email, role }
-    if (!currentEditingUser) {
-      data.password = password
-    } else {
-      data.id = currentEditingUser.id
-    }
-
-    const method = currentEditingUser ? 'PUT' : 'POST'
-    const result = await fetchJson(phpApi('admin/users.php'), {
-      method,
-      headers: DEFAULT_HEADERS,
-      body: JSON.stringify(data)
-    })
-
-    if (result?.success) {
-      showToast(currentEditingUser ? 'แก้ไขผู้ใช้สำเร็จ' : 'เพิ่มผู้ใช้สำเร็จ', 'success')
-      closeUserModal()
-      loadUsers()
-    } else {
-      showToast('เกิดข้อผิดพลาด: ' + (result?.error || 'Unknown error'), 'error')
-    }
-  } catch (error) {
-    showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error')
-  } finally {
-    // Hide loading state
-    saveBtn.disabled = false
-    btnText.style.display = 'inline'
-    spinner.style.display = 'none'
-  }
-}
-
-async function deleteUser(userId){
-  if(!confirm('คุณต้องการลบผู้ใช้นี้หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) return
-
-  try {
-    const result = await fetchJson(phpApi('admin/users.php'), {
-      method: 'DELETE',
-      headers: DEFAULT_HEADERS,
-      body: JSON.stringify({ id: userId })
-    })
-    if(result?.success){
-      showToast('ลบผู้ใช้สำเร็จ', 'success')
-      loadUsers()
-    } else {
-      showToast('เกิดข้อผิดพลาด: ' + (result?.error || 'Unknown error'), 'error')
-    }
-  } catch (error) {
-    showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error')
-  }
 }
 
 async function loadListings(){
@@ -535,14 +377,6 @@ async function loadStats(){
   if(visitorsEl) visitorsEl.textContent = data.visitors_today ?? 0
   const usageEl = document.getElementById('statTotalUsers')
   if(usageEl && data.total_users != null) usageEl.textContent = data.total_users
-
-  const newUsersEl = document.getElementById('statNewUsers')
-  if(newUsersEl) newUsersEl.textContent = data.new_users_today ?? 0
-  const newBookingsEl = document.getElementById('statNewBookings')
-  if(newBookingsEl) newBookingsEl.textContent = data.new_bookings_today ?? 0
-
-  // Update top tiles with real data
-  updateTopTilesFromStats(data)
 }
 
 // Update top tiles with data from stats API (safe keys with fallbacks)
@@ -552,6 +386,10 @@ function formatCurrency(num){
 
 function updateTopTilesFromStats(data){
   if(!data) data = {}
+  const revenueMonth = data.revenue_month ?? data.monthly_revenue ?? 0
+  const revenueTotal = data.revenue_total ?? data.total_revenue ?? 0
+  const completed = data.completed_bookings ?? data.bookings_completed ?? data.successful_bookings ?? 0
+  const pending = data.pending_bookings ?? data.bookings_pending ?? 0
 
   const setAmount = (id, value, isCurrency = false) => {
     const el = document.getElementById(id)
@@ -561,10 +399,10 @@ function updateTopTilesFromStats(data){
     amount.textContent = isCurrency ? formatCurrency(value) : String(value)
   }
 
-  setAmount('tileUnitsAvailable', data.units_available ?? 0, false)
-  setAmount('tileBookingsMonth', data.bookings_this_month ?? 0, false)
-  setAmount('tileRevenue', data.revenue ?? 0, true)
-  setAmount('tilePendingPayments', data.pending_payments ?? 0, false)
+  setAmount('tileRevenueMonth', revenueMonth, true)
+  setAmount('tileRevenueTotal', revenueTotal, true)
+  setAmount('tileCompletedBookings', completed, false)
+  setAmount('tilePending', pending, false)
 }
 
 Promise.all([
@@ -575,131 +413,90 @@ Promise.all([
   loadStats()
 ]).catch(err=>console.error('dashboard init error', err))
 
-// Add event listeners for user management
-document.getElementById('addUserBtn')?.addEventListener('click', () => openUserModal())
-
-// Modal event listeners
-document.getElementById('userModal')?.addEventListener('click', (e) => {
-  if (e.target.id === 'userModal') {
-    closeUserModal()
-  }
-})
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && document.getElementById('userModal').style.display !== 'none') {
-    closeUserModal()
-  }
-})
-
-// Search and filter functionality
-document.getElementById('userSearch')?.addEventListener('input', filterUsers)
-document.getElementById('roleFilter')?.addEventListener('change', filterUsers)
-
-function filterUsers() {
-  const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || ''
-  const roleFilter = document.getElementById('roleFilter')?.value || ''
-  const rows = document.querySelectorAll('#adminUsers tbody tr')
-
-  rows.forEach(row => {
-    const name = row.cells[0]?.textContent.toLowerCase() || ''
-    const email = row.cells[1]?.textContent.toLowerCase() || ''
-    const role = row.cells[2]?.textContent.toLowerCase() || ''
-
-    const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm)
-    const matchesRole = !roleFilter || role.includes(ROLE_LABELS[roleFilter]?.toLowerCase() || roleFilter.toLowerCase())
-
-    row.style.display = matchesSearch && matchesRole ? '' : 'none'
-  })
-}
-
 // Collapse right sidebar column if it's empty to avoid large blank space
 ;(function collapseEmptySidebar(){
   try{
-    const sidebarRight = document.querySelector('.sidebar-right')
-    const grid = document.querySelector('.dashboard-grid')
-    if(!sidebarRight || !grid) return
-    const hasContent = sidebarRight.children.length > 0 && sidebarRight.textContent.trim().length > 0
-    if(!hasContent) grid.classList.add('no-right')
+    // Sidebar-right removed - no longer needed
   }catch(e){ console.error('collapseEmptySidebar', e) }
 })()
 
 // ---------------- Admin message badge + polling / manual refresh ---------------
 // Polling interval in milliseconds (adjustable)
-const ADMIN_MSG_POLL_INTERVAL_MS = 15000
-let __adminMessagesPoll = null
+// const ADMIN_MSG_POLL_INTERVAL_MS = 15000
+// let __adminMessagesPoll = null
 
-async function fetchAdminConversationCounts(){
-  try{
-    const url = phpApi('chat/list_conversations.php')
-    const res = await fetch(url, { headers: DEFAULT_HEADERS })
-    if(!res.ok) return { unreadChats: 0, totalUnread: 0 }
-    const data = await res.json().catch(()=>null)
-    const conv = Array.isArray(data?.conversations) ? data.conversations : []
-    const unreadChats = conv.filter(c=>Number(c.unread_count||0) > 0).length
-    const totalUnread = conv.reduce((s,c)=>s + (Number(c.unread_count||0)), 0)
-    return { unreadChats, totalUnread }
-  }catch(err){
-    console.error('fetchAdminConversationCounts', err)
-    return { unreadChats: 0, totalUnread: 0 }
-  }
-}
+// async function fetchAdminConversationCounts(){
+//   try{
+//     const url = phpApi('chat/list_conversations.php')
+//     const res = await fetch(url, { headers: DEFAULT_HEADERS })
+//     if(!res.ok) return { unreadChats: 0, totalUnread: 0 }
+//     const data = await res.json().catch(()=>null)
+//     const conv = Array.isArray(data?.conversations) ? data.conversations : []
+//     const unreadChats = conv.filter(c=>Number(c.unread_count||0) > 0).length
+//     const totalUnread = conv.reduce((s,c)=>s + (Number(c.unread_count||0)), 0)
+//     return { unreadChats, totalUnread }
+//   }catch(err){
+//     console.error('fetchAdminConversationCounts', err)
+//     return { unreadChats: 0, totalUnread: 0 }
+//   }
+// }
 
-function updateAdminHeaderBadge(unreadChats, totalUnread){
-  try{
-    const titleEl = document.querySelector('.admin-title')
-    if(!titleEl) return
-    let badge = titleEl.querySelector('.site-msg-badge')
-    if(!badge && unreadChats > 0){
-      badge = document.createElement('span')
-      badge.className = 'site-msg-badge'
-      titleEl.appendChild(badge)
-    }
-    if(badge){
-      if(unreadChats > 0){
-        badge.textContent = unreadChats > 99 ? '99+' : String(unreadChats)
-        badge.title = `${totalUnread} unread messages across ${unreadChats} conversations`
-        badge.classList.remove('hidden')
-      } else {
-        badge.remove()
-      }
-    }
-  }catch(err){ console.error('updateAdminHeaderBadge', err) }
-}
+// function updateAdminHeaderBadge(unreadChats, totalUnread){
+//   try{
+//     const titleEl = document.querySelector('.admin-title')
+//     if(!titleEl) return
+//     let badge = titleEl.querySelector('.site-msg-badge')
+//     if(!badge && unreadChats > 0){
+//       badge = document.createElement('span')
+//       badge.className = 'site-msg-badge'
+//       titleEl.appendChild(badge)
+//     }
+//     if(badge){
+//       if(unreadChats > 0){
+//         badge.textContent = unreadChats > 99 ? '99+' : String(unreadChats)
+//         badge.title = `${totalUnread} unread messages across ${unreadChats} conversations`
+//         badge.classList.remove('hidden')
+//       } else {
+//         badge.remove()
+//       }
+//     }
+//   }catch(err){ console.error('updateAdminHeaderBadge', err) }
+// }
 
-async function startAdminMessagesPolling(){
-  if(__adminMessagesPoll) return
-  const run = async ()=>{
-    const counts = await fetchAdminConversationCounts()
-    updateAdminHeaderBadge(counts.unreadChats, counts.totalUnread)
-  }
-  await run()
-  __adminMessagesPoll = setInterval(run, ADMIN_MSG_POLL_INTERVAL_MS)
-}
+// async function startAdminMessagesPolling(){
+//   if(__adminMessagesPoll) return
+//   const run = async ()=>{
+//     const counts = await fetchAdminConversationCounts()
+//     updateAdminHeaderBadge(counts.unreadChats, counts.totalUnread)
+//   }
+//   await run()
+//   __adminMessagesPoll = setInterval(run, ADMIN_MSG_POLL_INTERVAL_MS)
+// }
 
-function stopAdminMessagesPolling(){ if(__adminMessagesPoll){ clearInterval(__adminMessagesPoll); __adminMessagesPoll = null } }
+// function stopAdminMessagesPolling(){ if(__adminMessagesPoll){ clearInterval(__adminMessagesPoll); __adminMessagesPoll = null } }
 
-// Add a manual refresh button in the header nav (if present)
-;(function attachAdminRefreshBtn(){
-  try{
-    const nav = document.querySelector('.admin-header nav')
-    if(!nav) return
-    if(document.getElementById('refreshMessagesBtn')) return
-    const btn = document.createElement('button')
-    btn.id = 'refreshMessagesBtn'
-    btn.type = 'button'
-    btn.className = 'btn-outline btn-sm'
-    btn.textContent = 'รีเฟรชข้อความ'
-    btn.addEventListener('click', async ()=>{
-      btn.disabled = true
-      btn.textContent = 'กำลังรีเฟรช...'
-      try{ const counts = await fetchAdminConversationCounts(); updateAdminHeaderBadge(counts.unreadChats, counts.totalUnread) }catch(e){console.error(e)} finally{ btn.disabled = false; btn.textContent = 'รีเฟรชข้อความ' }
-    })
-    nav.appendChild(btn)
-  }catch(err){ console.error('attachAdminRefreshBtn', err) }
-})()
+// // Add a manual refresh button in the header nav (if present)
+// ;(function attachAdminRefreshBtn(){
+//   try{
+//     const nav = document.querySelector('.admin-header nav')
+//     if(!nav) return
+//     if(document.getElementById('refreshMessagesBtn')) return
+//     const btn = document.createElement('button')
+//     btn.id = 'refreshMessagesBtn'
+//     btn.type = 'button'
+//     btn.className = 'btn-outline btn-sm'
+//     btn.textContent = 'รีเฟรชข้อความ'
+//     btn.addEventListener('click', async ()=>{
+//       btn.disabled = true
+//       btn.textContent = 'กำลังรีเฟรช...'
+//       try{ const counts = await fetchAdminConversationCounts(); updateAdminHeaderBadge(counts.unreadChats, counts.totalUnread) }catch(e){console.error(e)} finally{ btn.disabled = false; btn.textContent = 'รีเฟรชข้อความ' }
+//     })
+//     nav.appendChild(btn)
+//   }catch(err){ console.error('attachAdminRefreshBtn', err) }
+// })()
 
 // start polling for admin after initial loads
-startAdminMessagesPolling()
+// startAdminMessagesPolling() // Messages feature disabled
 
 // Events feature removed. Initialize tiles only.
 ;(async function initTiles(){

@@ -2,13 +2,13 @@
 
 :root {
   /* Color Palette */
-  --profile-primary: #6366f1;
-  --profile-primary-dark: #4f46e5;
-  --profile-secondary: #06b6d4;
-  --profile-accent: #f59e0b;
-  --profile-success: #10b981;
+  --profile-primary: #3DA5FF;
+  --profile-primary-dark: #1E5F99;
+  --profile-secondary: #3E8861;
+  --profile-accent: #F1D299;
+  --profile-success: #3E8861;
   --profile-error: #ef4444;
-  --profile-warning: #f59e0b;
+  --profile-warning: #F1D299;
 
   /* Neutral Colors */
   --profile-gray-50: #f9fafb;
@@ -72,8 +72,7 @@
   }
 
   .profile-sidebar,
-  .profile-main,
-  .profile-summary {
+  .profile-main {
     grid-column: 1;
   }
 
@@ -84,20 +83,11 @@
   .profile-sidebar {
     position: static;
   }
-
-  .profile-summary {
-    order: -1; /* Move summary to top on mobile */
-    margin-bottom: var(--profile-space-16);
-  }
 }
 
 @media (max-width: 768px) {
   .profile-layout {
     gap: var(--profile-space-12);
-  }
-
-  .profile-summary {
-    display: none; /* Hide summary on very small screens */
   }
 }
 

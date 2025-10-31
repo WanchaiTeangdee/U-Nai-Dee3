@@ -1,5 +1,8 @@
 // Ensure font-family is applied (fallback if CSS hasn't loaded yet)
-document.documentElement.style.fontFamily = "'Poppins', 'Noto Sans Thai', 'Sarabun', Arial, sans-serif";
+document.documentElement.style.fontFamily = "'Kanit', 'Noto Sans Thai', 'Sarabun', Arial, sans-serif";
+
+// debug: confirm script loaded
+try{ console.log('app.js loaded') } catch(e){}
 
 // Simple frontend script to load leaflet map and call backend /listings
 const authToken = localStorage.getItem('authToken')
@@ -33,6 +36,30 @@ const resolvePublicUrl = (inputPath) => {
   return `${base}/${normalized}`
 }
 
+// Extra runtime diagnostics: log presence of chat elements and simple click/submit traces
+document.addEventListener('DOMContentLoaded', ()=>{
+  try{
+  console.log('app.js DOMContentLoaded')
+  const chatSendBtn = document.getElementById('chatSendBtn')
+  const chatForm = document.getElementById('chatForm')
+  const chatMessage = document.getElementById('chatMessage')
+  console.log('chat elements', { chatSendBtn: !!chatSendBtn, chatForm: !!chatForm, chatMessage: !!chatMessage })
+
+    if(chatSendBtn){
+      chatSendBtn.addEventListener('click', (e)=>{
+        console.log('debug: chatSendBtn clicked')
+      })
+    }
+    if(chatForm){
+      chatForm.addEventListener('submit', (e)=>{
+        console.log('debug: chatForm submit event')
+      })
+    }
+  }catch(err){
+    console.error('diagnostic attach failed', err)
+  }
+})
+
 async function ensureAuthToken(){
   if(authToken) return authToken
   const stored = localStorage.getItem('authToken')
@@ -47,6 +74,7 @@ function renderUserStatus(){
   const registerLink = document.getElementById('registerLink')
   const landlordLink = document.getElementById('landlordLink')
   const adminLink = document.getElementById('adminLink')
+  const chatBtn = document.getElementById('chatBtn')
   const roleLabel = userStatus ? userStatus.querySelector('.user-role') : null
   const nameLink = userStatus ? userStatus.querySelector('.user-name') : null
   if(!userStr){
@@ -63,6 +91,7 @@ function renderUserStatus(){
     if(registerLink) registerLink.style.display = 'inline'
     if(landlordLink) landlordLink.style.display = 'none'
     if(adminLink) adminLink.style.display = 'none'
+    if(chatBtn) chatBtn.style.display = 'none'
     return
   }
   const user = JSON.parse(userStr)
@@ -86,6 +115,9 @@ function renderUserStatus(){
   }
   if(adminLink){
     adminLink.style.display = role === 'admin' ? 'inline' : 'none'
+  }
+  if(chatBtn){
+    chatBtn.style.display = (role === 'customer' || isLandlordRole(role)) ? 'inline' : 'none'
   }
   // leave messages link visibility to the badge updater (show when authenticated)
 }
@@ -112,78 +144,339 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(logoutBtn) logoutBtn.addEventListener('click', logout)
 })
 
-// --- message badge (site-wide) -------------------------------------------------
-// show small numeric badge next to the "messages" link when there are unread chats
-let __siteMessagesPoll = null
-async function fetchConversationCounts(){
+// Chat functionality
+let currentConversationId = null
+
+async function loadConversations(){
   try{
     const token = localStorage.getItem('authToken')
-    if(!token) return { unreadChats: 0, totalUnread: 0 }
+    if(!token) return []
     const url = phpApi('chat/list_conversations.php')
     const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } })
-    if(!res.ok) return { unreadChats: 0, totalUnread: 0 }
+    if(!res.ok) return []
     const data = await res.json().catch(()=>null)
-    const conv = Array.isArray(data?.conversations) ? data.conversations : []
-    const unreadChats = conv.filter(c=>Number(c.unread_count||0) > 0).length
-    const totalUnread = conv.reduce((s,c)=>s + (Number(c.unread_count||0)), 0)
-    return { unreadChats, totalUnread }
+    const conversations = Array.isArray(data?.conversations) ? data.conversations : []
+    renderConversations(conversations)
+    return conversations
   }catch(err){
-    console.error('fetchConversationCounts', err)
-    return { unreadChats: 0, totalUnread: 0 }
+    console.error('loadConversations', err)
+    renderConversations([])
+    return []
   }
 }
 
-function updateHeaderMessageBadge(unreadChats, totalUnread){
-  const link = document.getElementById('messagesLink')
-  if(!link) return
-  // ensure link is visible to authenticated users
-  const isVisible = !!localStorage.getItem('user')
-  link.style.display = isVisible ? 'inline' : 'none'
-  let badge = link.querySelector('.site-msg-badge')
-  if(!badge && unreadChats > 0){
-    badge = document.createElement('span')
-    badge.className = 'site-msg-badge'
-    link.appendChild(badge)
+function renderConversations(conversations){
+  const container = document.getElementById('conversationsList')
+  if(!container) return
+
+  // Remove loading state
+  const loading = container.querySelector('.conversations-loading')
+  if(loading) loading.remove()
+
+  container.innerHTML = ''
+  if(conversations.length === 0){
+    container.innerHTML = `
+      <div class="no-conversations">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
+        </svg>
+        <span>ยังไม่มีข้อความ</span>
+      </div>
+    `
+    return
   }
-  if(badge){
-    if(unreadChats > 0){
-      badge.textContent = unreadChats > 99 ? '99+' : String(unreadChats)
-      badge.title = `${totalUnread} unread messages across ${unreadChats} conversations`
-      badge.classList.remove('hidden')
-    } else {
-      badge.remove()
+
+  // Get current user info
+  const userStr = localStorage.getItem('user')
+  const currentUser = userStr ? JSON.parse(userStr) : null
+  const isLandlord = currentUser && isLandlordRole(currentUser.role)
+
+  conversations.forEach(conv => {
+    if(!conv.id){
+      console.warn('Conversation missing id:', conv)
+      return
     }
+
+    // Calculate other user name
+    let otherUserName = 'ไม่ระบุชื่อ'
+    if(isLandlord){
+      otherUserName = conv.customer_name || conv.customer_email || 'ลูกค้า'
+    }else{
+      otherUserName = conv.landlord_name || 'ผู้ปล่อยเช่า'
+    }
+
+    const hasUnread = Number(conv.unread_count || 0) > 0
+    const div = document.createElement('div')
+    div.className = `conversation-item ${hasUnread ? 'unread' : ''} ${currentConversationId === conv.id ? 'selected' : ''}`
+    div.innerHTML = `
+      <div class="conversation-name">${otherUserName}</div>
+      <div class="conversation-preview">${conv.last_message || 'ยังไม่มีข้อความ'}</div>
+      <div class="conversation-time">${conv.last_message_at ? formatTimeAgo(new Date(conv.last_message_at)) : ''}</div>
+      ${hasUnread ? `<span class="unread-badge">${conv.unread_count}</span>` : ''}
+    `
+    div.addEventListener('click', (event) => {
+      event.preventDefault()
+      selectConversation(conv.id)
+    })
+    container.appendChild(div)
+  })
+}
+
+function formatTimeAgo(date){
+  const now = new Date()
+  const diffMs = now - date
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMins / 60)
+  const diffDays = Math.floor(diffHours / 24)
+
+  if(diffMins < 1) return 'เมื่อสักครู่'
+  if(diffMins < 60) return `${diffMins} นาทีที่แล้ว`
+  if(diffHours < 24) return `${diffHours} ชั่วโมงที่แล้ว`
+  if(diffDays < 7) return `${diffDays} วันที่แล้ว`
+
+  return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
+}
+
+async function selectConversation(conversationId){
+  if(!conversationId){
+    console.error('selectConversation called with undefined conversationId')
+    return
+  }
+
+  currentConversationId = conversationId
+
+  // Update selected state
+  document.querySelectorAll('.conversation-item').forEach(item => {
+    item.classList.remove('selected')
+  })
+  // Find and select the clicked conversation item
+  const clickedItem = event?.target?.closest('.conversation-item')
+  if(clickedItem){
+    clickedItem.classList.add('selected')
+  }
+
+  // Update conversation info
+  try{
+    const conversations = await loadConversations()
+    const currentConv = conversations.find(c => String(c.id) === String(conversationId))
+    if(currentConv){
+      updateConversationInfo(currentConv)
+    }else{
+      console.warn('Conversation not found:', conversationId)
+      updateConversationInfo({ other_user_name: 'ไม่พบการสนทนา' })
+    }
+  }catch(err){
+    console.error('Error loading conversations:', err)
+  }
+
+  await loadMessages(conversationId)
+}
+
+function updateConversationInfo(conversation){
+  const infoEl = document.getElementById('currentConversationInfo')
+  if(!infoEl) return
+
+  // Get current user info
+  const userStr = localStorage.getItem('user')
+  const currentUser = userStr ? JSON.parse(userStr) : null
+  const isLandlord = currentUser && isLandlordRole(currentUser.role)
+
+  // Calculate other user name
+  let otherUserName = 'ไม่ระบุชื่อ'
+  if(isLandlord){
+    otherUserName = conversation.customer_name || conversation.customer_email || 'ลูกค้า'
+  }else{
+    otherUserName = conversation.landlord_name || 'ผู้ปล่อยเช่า'
+  }
+
+  const avatarEl = infoEl.querySelector('.conversation-avatar')
+  const nameEl = infoEl.querySelector('.conversation-name')
+  const statusEl = infoEl.querySelector('.conversation-status')
+
+  if(nameEl) nameEl.textContent = otherUserName
+  if(statusEl) statusEl.textContent = 'ออนไลน์' // Could be enhanced with actual online status
+}
+
+async function loadMessages(conversationId){
+  if(!conversationId){
+    console.error('loadMessages called with undefined conversationId')
+    return
+  }
+
+  try{
+    const token = localStorage.getItem('authToken')
+    if(!token) return
+    const url = phpApi(`chat/fetch_messages.php?conversation_id=${conversationId}`)
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+    if(!res.ok){
+      console.error('Failed to load messages:', res.status, res.statusText)
+      return
+    }
+    const data = await res.json().catch(()=>null)
+    const messages = Array.isArray(data?.messages) ? data.messages : []
+    renderMessages(messages)
+  }catch(err){
+    console.error('loadMessages error:', err)
   }
 }
 
-async function startSiteMessagesPolling(){
-  if(__siteMessagesPoll) return
-  const run = async ()=>{
-    const counts = await fetchConversationCounts()
-    updateHeaderMessageBadge(counts.unreadChats, counts.totalUnread)
+function renderMessages(messages){
+  const container = document.getElementById('chatMessages')
+  if(!container) return
+
+  // Clear empty state
+  container.innerHTML = ''
+
+  if(messages.length === 0){
+    container.innerHTML = `
+      <div class="chat-empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h4>เริ่มการสนทนา</h4>
+        <p>ส่งข้อความแรกเพื่อเริ่มการสนทนา</p>
+      </div>
+    `
+    return
   }
-  // run immediately and then every 10s
-  await run()
-  __siteMessagesPoll = setInterval(run, 10000)
+
+  messages.forEach(msg => {
+    const div = document.createElement('div')
+    div.className = `message ${msg.is_sender ? 'sent' : 'received'}`
+
+    const avatarLetter = (msg.sender_name || 'U')[0].toUpperCase()
+    const timeString = new Date(msg.created_at).toLocaleTimeString('th-TH', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    div.innerHTML = `
+      <div class="message-avatar">${avatarLetter}</div>
+      <div class="message-bubble">
+        <div class="message-content">${escapeHtml(msg.message)}</div>
+        <div class="message-time">${timeString}</div>
+      </div>
+    `
+    container.appendChild(div)
+  })
+
+  container.scrollTop = container.scrollHeight
 }
 
-function stopSiteMessagesPolling(){
-  if(__siteMessagesPoll){ clearInterval(__siteMessagesPoll); __siteMessagesPoll = null }
+function escapeHtml(text) {
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
-  // start polling if user already signed in
-  if(localStorage.getItem('authToken')) startSiteMessagesPolling()
-})
-
-document.addEventListener('auth:changed', ()=>{
-  if(localStorage.getItem('authToken')){
-    startSiteMessagesPolling()
-  } else {
-    stopSiteMessagesPolling()
-    updateHeaderMessageBadge(0,0)
+async function sendMessage(message){
+  if(!currentConversationId) throw new Error('No conversation selected')
+  // debug: show we entered sendMessage
+  try{ console.log('sendMessage called', { conversationId: currentConversationId, hasAuthToken: !!localStorage.getItem('authToken'), messagePreview: (message||'').slice(0,60) }) } catch(e){}
+  try{
+    const token = localStorage.getItem('authToken')
+    if(!token) throw new Error('No auth token available')
+    const url = phpApi('chat/send_message.php')
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        conversation_id: currentConversationId,
+        message: message
+      })
+    })
+    const j = await res.json().catch(()=>null)
+    if(res.ok){
+      // refresh messages
+      await loadMessages(currentConversationId)
+      return j
+    }
+    // If not OK, surface the server error
+    const errMsg = (j && j.error) ? j.error : `Server returned ${res.status}`
+    throw new Error(errMsg)
+  }catch(err){
+    console.error('sendMessage', err)
+    throw err
   }
-})
+}
+
+// --- message badge (site-wide) -------------------------------------------------
+// show small numeric badge next to the "messages" link when there are unread chats
+// let __siteMessagesPoll = null
+// async function fetchConversationCounts(){
+//   try{
+//     const token = localStorage.getItem('authToken')
+//     if(!token) return { unreadChats: 0, totalUnread: 0 }
+//     const url = phpApi('chat/list_conversations.php')
+//     const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+//     if(!res.ok) return { unreadChats: 0, totalUnread: 0 }
+//     const data = await res.json().catch(()=>null)
+//     const conv = Array.isArray(data?.conversations) ? data.conversations : []
+//     const unreadChats = conv.filter(c=>Number(c.unread_count||0) > 0).length
+//     const totalUnread = conv.reduce((s,c)=>s + (Number(c.unread_count||0)), 0)
+//     return { unreadChats, totalUnread }
+//   }catch(err){
+//     console.error('fetchConversationCounts', err)
+//     return { unreadChats: 0, totalUnread: 0 }
+//   }
+// }
+
+// function updateHeaderMessageBadge(unreadChats, totalUnread){
+//   const link = document.getElementById('messagesLink')
+//   if(!link) return
+//   // ensure link is visible to authenticated users
+//   const isVisible = !!localStorage.getItem('user')
+//   link.style.display = isVisible ? 'inline' : 'none'
+//   let badge = link.querySelector('.site-msg-badge')
+//   if(!badge && unreadChats > 0){
+//     badge = document.createElement('span')
+//     badge.className = 'site-msg-badge'
+//     link.appendChild(badge)
+//   }
+//   if(badge){
+//     if(unreadChats > 0){
+//       badge.textContent = unreadChats > 99 ? '99+' : String(unreadChats)
+//       badge.title = `${totalUnread} unread messages across ${unreadChats} conversations`
+//       badge.classList.remove('hidden')
+//     } else {
+//       badge.remove()
+//     }
+//   }
+// }
+
+// async function startSiteMessagesPolling(){
+//   if(__siteMessagesPoll) return
+//   const run = async ()=>{
+//     const counts = await fetchConversationCounts()
+//     updateHeaderMessageBadge(counts.unreadChats, counts.totalUnread)
+//   }
+//   // run immediately and then every 10s
+//   await run()
+//   __siteMessagesPoll = setInterval(run, 10000)
+// }
+
+// function stopSiteMessagesPolling(){
+//   if(__siteMessagesPoll){ clearInterval(__siteMessagesPoll); __siteMessagesPoll = null }
+// }
+
+// document.addEventListener('DOMContentLoaded', ()=>{
+//   // start polling if user already signed in
+//   if(localStorage.getItem('authToken')) startSiteMessagesPolling()
+// })
+
+// document.addEventListener('auth:changed', ()=>{
+//   if(localStorage.getItem('authToken')){
+//     startSiteMessagesPolling()
+//   } else {
+//     stopSiteMessagesPolling()
+//     updateHeaderMessageBadge(0,0)
+//   }
+// })
 
 
 // initialize password toggle buttons' accessible state on load
@@ -526,7 +819,7 @@ if(mapContainer && typeof L !== 'undefined'){
     {name: 'BTS Asok', lat:13.7373, lng:100.5609},
     {name: 'MRT Sukhumvit', lat:13.7378, lng:100.5601}
   ]
-  markers.forEach(m=> L.circleMarker([m.lat,m.lng],{radius:6,color:'#0b9bd7'}).addTo(map).bindPopup(m.name))
+  markers.forEach(m=> L.circleMarker([m.lat,m.lng],{radius:6,color:'#3DA5FF'}).addTo(map).bindPopup(m.name))
 
   let propertyType = null
 
@@ -562,10 +855,10 @@ if(mapContainer && typeof L !== 'undefined'){
   const resolveImageUrl = (listing) => {
     const src = listing?.thumbnail_url || (Array.isArray(listing?.image_urls) ? listing.image_urls[0] : null)
     if(!src || typeof src !== 'string' || !src.trim()){
-      return 'https://via.placeholder.com/400x300?text=No+Image'
+      return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%25' height='100%25' fill='%23efefef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='18'>No%20Image</text></svg>"
     }
     const direct = resolvePublicUrl(src)
-    return direct || 'https://via.placeholder.com/400x300?text=No+Image'
+    return direct || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%25' height='100%25' fill='%23efefef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='18'>No%20Image</text></svg>"
   }
 
   const formatPrice = (price) => {
@@ -631,7 +924,7 @@ if(mapContainer && typeof L !== 'undefined'){
       if(userCircle) map.removeLayer(userCircle)
 
       userMarker = L.marker([lat,lng],{title: 'ตำแหน่งของฉัน'}).addTo(map).bindPopup('ตำแหน่งของฉัน').openPopup()
-      userCircle = L.circle([lat,lng],{radius: accuracy, color: '#0b9bd7', fillOpacity: 0.08}).addTo(map)
+      userCircle = L.circle([lat,lng],{radius: accuracy, color: '#3DA5FF', fillOpacity: 0.08}).addTo(map)
       map.setView([lat,lng],13)
 
       const listings = await fetchListings()
@@ -691,4 +984,107 @@ if(mapContainer && typeof L !== 'undefined'){
       }
     })
   })
+
+  // Chat functionality
+  const chatBtn = document.getElementById('chatBtn')
+  if(chatBtn){
+    chatBtn.addEventListener('click', async (e) => {
+      e.preventDefault()
+      openModal('chatModal')
+      await loadConversations()
+
+      // Focus on message input if conversations exist
+      setTimeout(() => {
+        const messageInput = document.getElementById('chatMessage')
+        if(messageInput) messageInput.focus()
+      }, 100)
+    })
+  }
+
+    // Chat modal event listeners
+    const chatModal = document.getElementById('chatModal')
+    if(chatModal){
+      // Close modal when clicking backdrop or close button
+      chatModal.addEventListener('click', (e) => {
+        if(e.target.matches('[data-close-modal]') || e.target.closest('[data-close-modal]')){
+          closeModal('chatModal')
+          currentConversationId = null
+        }
+      })
+
+      // Chat form submission and send button handling
+      const chatForm = document.getElementById('chatForm')
+      const chatSendBtn = document.getElementById('chatSendBtn')
+      const messageInputEl = document.getElementById('chatMessage')
+      const chatFormMsg = document.getElementById('chatFormMsg')
+
+    async function handleChatSend(e){
+      console.log('handleChatSend called')
+      if(e && e.preventDefault) e.preventDefault()
+      const messageInput = messageInputEl
+      if(!messageInput) return
+      const message = messageInput.value.trim()
+      if(!currentConversationId){
+        if(chatFormMsg){
+          chatFormMsg.textContent = 'กรุณาเลือกการสนทนาก่อนส่งข้อความ'
+          chatFormMsg.classList.remove('form-msg--success')
+        }
+        return
+      }
+  if(!message) return
+
+  // Clear any previous messages
+  if(chatFormMsg) chatFormMsg.textContent = ''
+
+  // debug: log important state so we can see why network may not fire
+  console.log('handleChatSend', { conversationId: currentConversationId, hasAuthToken: !!localStorage.getItem('authToken'), messagePreview: message.slice(0,60) })
+
+  messageInput.disabled = true
+      messageInput.placeholder = 'กำลังส่ง...'
+      try{
+        await sendMessage(message)
+        messageInput.value = ''
+        if(chatFormMsg){
+          chatFormMsg.textContent = 'ส่งข้อความแล้ว'
+          chatFormMsg.classList.add('form-msg--success')
+        }
+        setTimeout(() => { 
+          if(chatFormMsg){
+            chatFormMsg.textContent = ''
+            chatFormMsg.classList.remove('form-msg--success')
+          }
+        }, 2000)
+      }catch(err){
+        console.error('Send message error:', err)
+        if(chatFormMsg){
+          chatFormMsg.textContent = 'ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง'
+          chatFormMsg.classList.remove('form-msg--success')
+        }
+      }finally{
+        messageInput.disabled = false
+        messageInput.placeholder = 'พิมพ์ข้อความของคุณที่นี่...'
+        messageInput.focus()
+      }
+    }
+
+    if(chatForm){
+      chatForm.addEventListener('submit', handleChatSend)
+    }
+    if(chatSendBtn){
+      chatSendBtn.addEventListener('click', handleChatSend)
+    }
+
+    // Enter key to send message
+    const messageInput = document.getElementById('chatMessage')
+    if(messageInputEl){
+      messageInputEl.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && !e.shiftKey){
+          e.preventDefault()
+          // Prefer a programmatic call to the send handler rather than dispatching a synthetic submit event
+          if(typeof handleChatSend === 'function') handleChatSend()
+          else if(chatSendBtn) chatSendBtn.click()
+        }
+      })
+    }
+  }
 }

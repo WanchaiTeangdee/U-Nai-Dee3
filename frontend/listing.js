@@ -1,7 +1,7 @@
 'use strict';
 
 const PROPERTY_LABELS = { condo: 'คอนโด', house: 'บ้านเช่า', other: 'ที่พัก' };
-const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/800x500?text=No+Image';
+const PLACEHOLDER_IMAGE = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'><rect width='100%25' height='100%25' fill='%23efefef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='24'>No%20Image</text></svg>";
 
 const deriveProjectBasePath = () => {
   const { pathname } = window.location;
@@ -107,13 +107,13 @@ const modalNodes = {
   bookingStatus: document.getElementById('bookingStatus'),
   contactButton: document.getElementById('contactOwnerBtn'),
   bookingButton: document.getElementById('bookNowBtn'),
-  chatButton: document.getElementById('chatOwnerBtn'),
-  chatModal: document.getElementById('chatModal'),
-  chatMessages: document.getElementById('chatMessages'),
-  chatForm: document.getElementById('chatForm'),
-  chatInput: document.getElementById('chatInput'),
-  chatStatus: document.getElementById('chatStatus'),
-  chatListingTitle: document.getElementById('chatListingTitle')
+  // chatButton: document.getElementById('chatOwnerBtn'),
+  // chatModal: document.getElementById('chatModal'),
+  // chatMessages: document.getElementById('chatMessages'),
+  // chatForm: document.getElementById('chatForm'),
+  // chatInput: document.getElementById('chatInput'),
+  // chatStatus: document.getElementById('chatStatus'),
+  // chatListingTitle: document.getElementById('chatListingTitle')
 };
 
 const chatState = {
@@ -123,6 +123,53 @@ const chatState = {
   initializing: false,
   isSending: false,
   loading: false
+};
+
+// Lightweight safe stubs for chat UI functions.
+// The listing page in this repo may not include the full chat modal markup,
+// so provide no-op or logging implementations to avoid runtime ReferenceErrors.
+const setChatStatus = (msg) => {
+  try{
+    const el = modalNodes.chatStatus || document.getElementById('chatStatus');
+    if(el) el.textContent = msg || '';
+    else if(msg) console.log('chatStatus:', msg);
+  }catch(e){ console.warn('setChatStatus stub error', e) }
+};
+
+const resetChatMessages = () => {
+  try{
+    if(modalNodes.chatMessages) modalNodes.chatMessages.innerHTML = '';
+  }catch(e){ console.warn('resetChatMessages stub error', e) }
+};
+
+const loadChatMessages = async ({ reset = false, silent = false } = {}) => {
+  // stub: in full chat-enabled build this will fetch recent messages.
+  if(!silent) console.debug('loadChatMessages stub called', { reset, silent });
+  return [];
+};
+
+const ensureConversation = async () => {
+  // stub: in full chat-enabled build this will create/return a conversation id.
+  console.debug('ensureConversation stub called');
+  return null;
+};
+
+const setupChatFeature = () => {
+  // Stub for environments where the full chat UI/markup is not present.
+  // If a chat button exists, leave it functional but don't throw.
+  try{
+    if(!modalNodes.chatButton) return;
+    // If chat is intentionally disabled, keep button hidden.
+    // Otherwise, provide a safe click handler that prompts login if needed.
+    const btn = modalNodes.chatButton;
+    btn.onclick = (e) => {
+      e.preventDefault();
+      // If there is a function to open the auth panel, use it; otherwise do nothing.
+      if(typeof openAuthPanel === 'function') openAuthPanel('login');
+      else if(typeof window.showLogin === 'function') window.showLogin();
+      else console.log('chat button clicked but chat feature is not enabled');
+    };
+  }catch(err){ console.warn('setupChatFeature stub error', err) }
 };
 
 const getCurrentUser = () => {
@@ -145,44 +192,50 @@ const getAuthHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-const setChatStatus = (message) => {
-  if(modalNodes.chatStatus){
-    modalNodes.chatStatus.textContent = message || '';
-    modalNodes.chatStatus.hidden = !message;
-  }
-};
+// const setChatStatus = (message) => {
+//   if(modalNodes.chatStatus){
+//     modalNodes.chatStatus.textContent = message || '';
+//     modalNodes.chatStatus.hidden = !message;
+//   }
+// };
 
-const resetChatMessages = () => {
-  if(modalNodes.chatMessages){
-    modalNodes.chatMessages.innerHTML = '<div class="chat-empty">ยังไม่มีข้อความ เริ่มสนทนาได้เลย</div>';
-  }
-  chatState.lastMessageId = 0;
-};
+// const resetChatMessages = () => {
+//   if(modalNodes.chatMessages){
+//     modalNodes.chatMessages.innerHTML = '<div class="chat-empty">ยังไม่มีข้อความ เริ่มสนทนาได้เลย</div>';
+//   }
+//   chatState.lastMessageId = 0;
+// };
 
-const appendChatMessages = (messages) => {
-  if(!modalNodes.chatMessages || !Array.isArray(messages) || messages.length === 0) return;
-  const currentUser = getCurrentUser();
-  const emptyNode = modalNodes.chatMessages.querySelector('.chat-empty');
-  if(emptyNode){
-    modalNodes.chatMessages.innerHTML = '';
-  }
-  messages.forEach((msg) => {
-    const wrapper = document.createElement('div');
-    const isOwn = currentUser && Number(currentUser.id) === Number(msg.sender_id);
-    wrapper.className = `chat-message${isOwn ? ' is-own' : ''}`;
-    const safeBody = escapeHtmlDetail(msg.message).replace(/\n/g, '<br>');
-    wrapper.innerHTML = `
-      <div class="chat-message-body">${safeBody}</div>
-      <div class="chat-message-meta">${formatDateTime(msg.created_at) || ''}</div>
-    `;
-    modalNodes.chatMessages.appendChild(wrapper);
-    chatState.lastMessageId = Math.max(chatState.lastMessageId, Number(msg.id));
-  });
-  requestAnimationFrame(() => {
-    modalNodes.chatMessages.scrollTop = modalNodes.chatMessages.scrollHeight;
-  });
-};
+// const appendChatMessages = (messages) => {
+//   if(!modalNodes.chatMessages || !Array.isArray(messages) || messages.length === 0) return;
+//   const currentUser = getCurrentUser();
+//   const emptyNode = modalNodes.chatMessages.querySelector('.chat-empty');
+//   if(emptyNode){
+//     modalNodes.chatMessages.innerHTML = '';
+//   }
+//   messages.forEach((msg) => {
+//     const wrapper = document.createElement('div');
+//     const isOwn = currentUser && Number(currentUser.id) === Number(msg.sender_id);
+//     wrapper.className = `chat-message${isOwn ? ' is-own' : ''}`;
+//     const safeBody = escapeHtmlDetail(msg.message).replace(/\n/g, '<br>');
+//     wrapper.innerHTML = `
+//       <div class="chat-message-body">${safeBody}</div>
+//       <div class="chat-message-meta">${formatDateTime(msg.created_at) || ''}</div>
+//     `;
+//     modalNodes.chatMessages.appendChild(wrapper);
+//     chatState.lastMessageId = Math.max(chatState.lastMessageId, Number(msg.id));
+//   });
+//   requestAnimationFrame(() => {
+//     modalNodes.chatMessages.scrollTop = modalNodes.chatMessages.scrollHeight;
+//   });
+// };
 
+// const stopChatPolling = () => {
+//   if(chatState.pollingTimer){
+//     clearInterval(chatState.pollingTimer);
+//     chatState.pollingTimer = null;
+//   }
+// };
 const stopChatPolling = () => {
   if(chatState.pollingTimer){
     clearInterval(chatState.pollingTimer);
@@ -190,6 +243,12 @@ const stopChatPolling = () => {
   }
 };
 
+// const startChatPolling = () => {
+//   stopChatPolling();
+//   chatState.pollingTimer = setInterval(() => {
+//     loadChatMessages({ silent: true });
+//   }, 7000);
+// };
 const startChatPolling = () => {
   stopChatPolling();
   chatState.pollingTimer = setInterval(() => {
@@ -197,188 +256,188 @@ const startChatPolling = () => {
   }, 7000);
 };
 
-const loadChatMessages = async ({ reset = false, silent = false } = {}) => {
-  if(!chatState.conversationId || chatState.loading) return;
-  chatState.loading = true;
-  try{
-    const afterId = reset ? 0 : chatState.lastMessageId;
-    const url = phpApiDetail(`chat/fetch_messages.php?conversation_id=${chatState.conversationId}&after_id=${afterId}`);
-    const res = await fetch(url, { headers: { ...getAuthHeaders() } });
-    if(!res.ok){
-      const text = await res.text();
-      throw new Error(text || `HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    if(reset){
-      resetChatMessages();
-    }
-    const incoming = Array.isArray(data.messages) ? data.messages : [];
-    if(incoming.length > 0){
-      appendChatMessages(incoming);
-    }else if(reset && modalNodes.chatMessages && !modalNodes.chatMessages.children.length){
-      resetChatMessages();
-    }
-  }catch(err){
-    console.error('loadChatMessages error', err);
-    if(!silent){
-      setChatStatus('ไม่สามารถโหลดข้อความได้ กรุณาลองใหม่');
-    }
-  }finally{
-    chatState.loading = false;
-  }
-};
+// const loadChatMessages = async ({ reset = false, silent = false } = {}) => {
+//   if(!chatState.conversationId || chatState.loading) return;
+//   chatState.loading = true;
+//   try{
+//     const afterId = reset ? 0 : chatState.lastMessageId;
+//     const url = phpApiDetail(`chat/fetch_messages.php?conversation_id=${chatState.conversationId}&after_id=${afterId}`);
+//     const res = await fetch(url, { headers: { ...getAuthHeaders() } });
+//     if(!res.ok){
+//       const text = await res.text();
+//       throw new Error(text || `HTTP ${res.status}`);
+//     }
+//     const data = await res.json();
+//     if(reset){
+//       resetChatMessages();
+//     }
+//     const incoming = Array.isArray(data.messages) ? data.messages : [];
+//     if(incoming.length > 0){
+//       appendChatMessages(incoming);
+//     }else if(reset && modalNodes.chatMessages && !modalNodes.chatMessages.children.length){
+//       resetChatMessages();
+//     }
+//   }catch(err){
+//     console.error('loadChatMessages error', err);
+//     if(!silent){
+//       setChatStatus('ไม่สามารถโหลดข้อความได้ กรุณาลองใหม่');
+//     }
+//   }finally{
+//     chatState.loading = false;
+//   }
+// };
 
-const ensureConversation = async () => {
-  if(chatState.conversationId) return chatState.conversationId;
-  if(chatState.initializing) return null;
-  chatState.initializing = true;
-  try{
-    const payload = { listing_id: listingState.id };
-    const res = await fetch(phpApiDetail('chat/get_or_create_thread.php'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-      body: JSON.stringify(payload)
-    });
-    if(!res.ok){
-      const errorPayload = await res.json().catch(() => ({}));
-      throw new Error(errorPayload.error || `HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    const conversation = data.conversation;
-    if(!conversation || !conversation.id){
-      throw new Error('invalid_conversation_response');
-    }
-    chatState.conversationId = Number(conversation.id);
-    chatState.lastMessageId = 0;
-    return chatState.conversationId;
-  }catch(err){
-    console.error('ensureConversation error', err);
-    setChatStatus('เปิดการสนทนาไม่ได้ กรุณาลองใหม่');
-    return null;
-  }finally{
-    chatState.initializing = false;
-  }
-};
+// const ensureConversation = async () => {
+//   if(chatState.conversationId) return chatState.conversationId;
+//   if(chatState.initializing) return null;
+//   chatState.initializing = true;
+//   try{
+//     const payload = { listing_id: listingState.id };
+//     const res = await fetch(phpApiDetail('chat/get_or_create_thread.php'), {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+//       body: JSON.stringify(payload)
+//     });
+//     if(!res.ok){
+//       const errorPayload = await res.json().catch(() => ({}));
+//       throw new Error(errorPayload.error || `HTTP ${res.status}`);
+//     }
+//     const data = await res.json();
+//     const conversation = data.conversation;
+//     if(!conversation || !conversation.id){
+//       throw new Error('invalid_conversation_response');
+//     }
+//     chatState.conversationId = Number(conversation.id);
+//     chatState.lastMessageId = 0;
+//     return chatState.conversationId;
+//   }catch(err){
+//     console.error('ensureConversation error', err);
+//     setChatStatus('เปิดการสนทนาไม่ได้ กรุณาลองใหม่');
+//     return null;
+//   }finally{
+//     chatState.initializing = false;
+//   }
+// };
 
-const openChatModal = async () => {
-  setChatStatus('');
-  const convoId = await ensureConversation();
-  if(!convoId) return;
-  if(modalNodes.chatListingTitle && listingState.title){
-    modalNodes.chatListingTitle.textContent = `ประกาศ: ${listingState.title}`;
-  }
-  if(modalNodes.chatModal){
-    openListingModal(modalNodes.chatModal);
-  }
-  await loadChatMessages({ reset: true });
-  startChatPolling();
-};
+// const openChatModal = async () => {
+//   setChatStatus('');
+//   const convoId = await ensureConversation();
+//   if(!convoId) return;
+//   if(modalNodes.chatListingTitle && listingState.title){
+//     modalNodes.chatListingTitle.textContent = `ประกาศ: ${listingState.title}`;
+//   }
+//   if(modalNodes.chatModal){
+//     openListingModal(modalNodes.chatModal);
+//   }
+//   await loadChatMessages({ reset: true });
+//   startChatPolling();
+// };
 
-const setupChatFeature = () => {
-  const chatBtn = modalNodes.chatButton;
-  if(!chatBtn) return;
-  const defaultLabel = chatBtn.dataset.label || chatBtn.textContent || 'แชทกับเจ้าของ';
-  chatBtn.dataset.label = defaultLabel;
-  chatBtn.hidden = true;
-  chatBtn.disabled = false;
+// const setupChatFeature = () => {
+//   const chatBtn = modalNodes.chatButton;
+//   if(!chatBtn) return;
+//   const defaultLabel = chatBtn.dataset.label || chatBtn.textContent || 'แชทกับเจ้าของ';
+//   chatBtn.dataset.label = defaultLabel;
+//   chatBtn.hidden = true;
+//   chatBtn.disabled = false;
 
-  const currentUser = getCurrentUser();
-  if(!currentUser){
-    stopChatPolling();
-    chatState.conversationId = null;
-    chatState.lastMessageId = 0;
-    setChatStatus('');
-    if(modalNodes.chatMessages){
-      resetChatMessages();
-    }
-    chatBtn.hidden = false;
-    chatBtn.textContent = 'เข้าสู่ระบบเพื่อแชท';
-    chatBtn.onclick = (event) => {
-      event.preventDefault();
-      if(typeof openAuthPanel === 'function'){
-        openAuthPanel('login');
-      }else{
-        window.location.href = 'login.html';
-      }
-    };
-    return;
-  }
+//   const currentUser = getCurrentUser();
+//   if(!currentUser){
+//     stopChatPolling();
+//     chatState.conversationId = null;
+//     chatState.lastMessageId = 0;
+//     setChatStatus('');
+//     if(modalNodes.chatMessages){
+//       resetChatMessages();
+//     }
+//     chatBtn.hidden = false;
+//     chatBtn.textContent = 'เข้าสู่ระบบเพื่อแชท';
+//     chatBtn.onclick = (event) => {
+//       event.preventDefault();
+//       if(typeof openAuthPanel === 'function'){
+//         openAuthPanel('login');
+//       }else{
+//         window.location.href = 'login.html';
+//       }
+//     };
+//     return;
+//   }
 
-  const normalizedRole = (currentUser.role || 'customer').toString().trim().toLowerCase();
-  const isOwnerViewing = listingState.ownerId && Number(currentUser.id) === Number(listingState.ownerId);
-  const isCustomer = !['landlord', 'host', 'admin'].includes(normalizedRole);
-  if(isOwnerViewing || !isCustomer){
-    stopChatPolling();
-    chatBtn.hidden = true;
-    chatBtn.onclick = null;
-    return;
-  }
+//   const normalizedRole = (currentUser.role || 'customer').toString().trim().toLowerCase();
+//   const isOwnerViewing = listingState.ownerId && Number(currentUser.id) === Number(listingState.ownerId);
+//   const isCustomer = !['landlord', 'host', 'admin'].includes(normalizedRole);
+//   if(isOwnerViewing || !isCustomer){
+//     stopChatPolling();
+//     chatBtn.hidden = true;
+//     chatBtn.onclick = null;
+//     return;
+//   }
 
-  chatBtn.hidden = false;
-  chatBtn.textContent = defaultLabel;
-  chatBtn.onclick = async () => {
-    if(chatState.initializing) return;
-    chatBtn.disabled = true;
-    chatBtn.textContent = 'กำลังเปิด...';
-    try{
-      await openChatModal();
-      if(modalNodes.chatInput){
-        modalNodes.chatInput.focus();
-      }
-    }finally{
-      chatBtn.disabled = false;
-      chatBtn.textContent = chatBtn.dataset.label || defaultLabel;
-    }
-  };
+//   chatBtn.hidden = false;
+//   chatBtn.textContent = defaultLabel;
+//   chatBtn.onclick = async () => {
+//     if(chatState.initializing) return;
+//     chatBtn.disabled = true;
+//     chatBtn.textContent = 'กำลังเปิด...';
+//     try{
+//       await openChatModal();
+//       if(modalNodes.chatInput){
+//         modalNodes.chatInput.focus();
+//       }
+//     }finally{
+//       chatBtn.disabled = false;
+//       chatBtn.textContent = chatBtn.dataset.label || defaultLabel;
+//     }
+//   };
 
-  if(modalNodes.chatForm && !modalNodes.chatForm.dataset.bound){
-    modalNodes.chatForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if(chatState.isSending) return;
-      if(!modalNodes.chatInput) return;
-      const message = modalNodes.chatInput.value.trim();
-      if(message === '') return;
-      if(!chatState.conversationId){
-        const convoId = await ensureConversation();
-        if(!convoId) return;
-      }
-      chatState.isSending = true;
-      setChatStatus('');
-      const submitBtn = modalNodes.chatForm.querySelector('button[type="submit"]');
-      if(submitBtn){
-        submitBtn.disabled = true;
-      }
-      try{
-        const res = await fetch(phpApiDetail('chat/send_message.php'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-          body: JSON.stringify({
-            conversation_id: chatState.conversationId,
-            message
-          })
-        });
-        if(!res.ok){
-          const payload = await res.json().catch(() => ({}));
-          throw new Error(payload.error || `HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        if(data && data.message){
-          appendChatMessages([data.message]);
-        }
-        modalNodes.chatInput.value = '';
-      }catch(err){
-        console.error('chat send error', err);
-        setChatStatus('ส่งข้อความไม่สำเร็จ กรุณาลองใหม่');
-      }finally{
-        chatState.isSending = false;
-        if(submitBtn){
-          submitBtn.disabled = false;
-        }
-      }
-    });
-    modalNodes.chatForm.dataset.bound = 'true';
-  }
-};
+//   if(modalNodes.chatForm && !modalNodes.chatForm.dataset.bound){
+//     modalNodes.chatForm.addEventListener('submit', async (event) => {
+//       event.preventDefault();
+//       if(chatState.isSending) return;
+//       if(!modalNodes.chatInput) return;
+//       const message = modalNodes.chatInput.value.trim();
+//       if(message === '') return;
+//       if(!chatState.conversationId){
+//         const convoId = await ensureConversation();
+//         if(!convoId) return;
+//       }
+//       chatState.isSending = true;
+//       setChatStatus('');
+//       const submitBtn = modalNodes.chatForm.querySelector('button[type="submit"]');
+//       if(submitBtn){
+//         submitBtn.disabled = true;
+//       }
+//       try{
+//         const res = await fetch(phpApiDetail('chat/send_message.php'), {
+//           method: 'POST',
+//           headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+//           body: JSON.stringify({
+//             conversation_id: chatState.conversationId,
+//             message
+//           })
+//         });
+//         if(!res.ok){
+//           const payload = await res.json().catch(() => ({}));
+//           throw new Error(payload.error || `HTTP ${res.status}`);
+//         }
+//         const data = await res.json();
+//         if(data && data.message){
+//           appendChatMessages([data.message]);
+//         }
+//         modalNodes.chatInput.value = '';
+//       }catch(err){
+//         console.error('chat send error', err);
+//         setChatStatus('ส่งข้อความไม่สำเร็จ กรุณาลองใหม่');
+//       }finally{
+//         chatState.isSending = false;
+//         if(submitBtn){
+//           submitBtn.disabled = false;
+//         }
+//       }
+//     });
+//     modalNodes.chatForm.dataset.bound = 'true';
+//   }
+// };
 
 const showErrorDetail = (message) => {
   if(elementsDetail.error){
@@ -757,13 +816,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('auth:changed', () => {
-  if(listingState.id){
-    setupChatFeature();
-  }
+  // setupChatFeature(); // Chat feature disabled
 });
 
 document.addEventListener('keydown', (event) => {
-  if(event.key === 'Escape' && modalNodes.chatModal && modalNodes.chatModal.getAttribute('aria-hidden') === 'false'){
-    stopChatPolling();
-  }
+  // if(event.key === 'Escape' && modalNodes.chatModal && modalNodes.chatModal.getAttribute('aria-hidden') === 'false'){
+  //   stopChatPolling();
+  // } // Chat feature disabled
 });

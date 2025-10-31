@@ -5,7 +5,7 @@ Files:
 - styles.css
 - app.js
 
- The page uses Google Font "Poppins" for a modern UI. If you don't see the new font after editing, try clearing browser cache or press Ctrl+F5 to force reload.
+ The page uses Google Font "Kanit" for a modern UI. If you don't see the new font after editing, try clearing browser cache or press Ctrl+F5 to force reload.
 
 Auth API:
 - Register: POST /api/register.php { email, password, name }
@@ -13,4 +13,3 @@ Auth API:
 
 DB schema for users/tokens: `schema/db_users_tokens.sql` (import into phpMyAdmin)
 
-ฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟฟ

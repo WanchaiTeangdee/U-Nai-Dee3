@@ -153,29 +153,29 @@ const elements = {
   bookingRequestsRefresh: document.getElementById('refreshBookingRequestsBtn'),
 }
 
-const messageElements = {
-  list: document.getElementById('conversationList'),
-  empty: document.getElementById('conversationEmpty'),
-  title: document.getElementById('conversationTitle'),
-  meta: document.getElementById('conversationMeta'),
-  messages: document.getElementById('conversationMessages'),
-  form: document.getElementById('conversationForm'),
-  input: document.getElementById('conversationInput'),
-  status: document.getElementById('conversationStatus'),
-  refreshBtn: document.getElementById('refreshConversationsBtn')
-}
+// const messageElements = {
+//   list: document.getElementById('conversationList'),
+//   empty: document.getElementById('conversationEmpty'),
+//   title: document.getElementById('conversationTitle'),
+//   meta: document.getElementById('conversationMeta'),
+//   messages: document.getElementById('conversationMessages'),
+//   form: document.getElementById('conversationForm'),
+//   input: document.getElementById('conversationInput'),
+//   status: document.getElementById('conversationStatus'),
+//   refreshBtn: document.getElementById('refreshConversationsBtn')
+// }
 
-const conversationEmptyDefault = messageElements.empty?.textContent || 'ยังไม่มีผู้เช่าติดต่อเข้ามา'
+// const conversationEmptyDefault = messageElements.empty?.textContent || 'ยังไม่มีผู้เช่าติดต่อเข้ามา'
 
-const messageState = {
-  conversations: [],
-  conversationMap: new Map(),
-  activeId: null,
-  lastMessageId: 0,
-  loadingList: false,
-  loadingMessages: false,
-  pollingTimer: null
-}
+// const messageState = {
+//   conversations: [],
+//   conversationMap: new Map(),
+//   activeId: null,
+//   lastMessageId: 0,
+//   loadingList: false,
+//   loadingMessages: false,
+//   pollingTimer: null
+// }
 
 function setCardCollapsed(card, collapsed){
   if(!card) return
@@ -215,7 +215,6 @@ let currentListings = []
 let removedImages = new Set()
 let currentBookingRequests = []
 let bookingStatusResetTimer = null
-let currentConfirmedGuests = []
 
 const defaultFormTexts = {
   title: elements.formTitle?.textContent || '',
@@ -821,44 +820,14 @@ function setBookingRequestsStatus(message, type = 'info'){
 
 const BOOKING_STATUS_OPTIONS = [
   { value: 'pending', label: 'รอดำเนินการ' },
-  { value: 'confirmed', label: 'ยืนยันแล้ว' },
   { value: 'contacted', label: 'ติดต่อแล้ว' },
   { value: 'closed', label: 'ปิดคำขอ' }
 ]
-
-function renderConfirmedGuests(requests){
-  const container = document.getElementById('confirmedGuests')
-  if(!container) return
-  const confirmed = requests.filter((req) => (req.status || '').toLowerCase() === 'confirmed')
-  currentConfirmedGuests = confirmed
-  if(confirmed.length === 0){
-    container.innerHTML = '<div class="empty-state">ยังไม่มีคำขอที่ยืนยันแล้ว</div>'
-    return
-  }
-  const cards = confirmed.map((req) => {
-    const safeName = escapeHtml(req.requester_name || req.requester_email || '-')
-    const listingTitle = req.listing_title ? escapeHtml(req.listing_title) : '-'
-    const message = req.message ? `<p>${escapeHtml(req.message)}</p>` : ''
-    const created = formatDateTime(req.created_at) || '-'
-    return `
-      <article class="profile-summary-card">
-        <span>${listingTitle}</span>
-        <strong>${safeName}</strong>
-        <small>ยืนยันเมื่อ ${escapeHtml(created)}</small>
-        ${message}
-        <small>อีเมล: ${escapeHtml(req.requester_email || '-')}</small>
-        <small>โทร: ${escapeHtml(req.requester_phone || '-')}</small>
-      </article>
-    `
-  }).join('')
-  container.innerHTML = `<div class="profile-summary-grid">${cards}</div>`
-}
 
 function renderBookingRequests(requests){
   const container = elements.bookingRequestsContainer
   if(!container) return
   currentBookingRequests = Array.isArray(requests) ? requests.map((item) => ({ ...item })) : []
-  renderConfirmedGuests(currentBookingRequests)
   if(currentBookingRequests.length === 0){
     container.innerHTML = '<div class="empty-state">ยังไม่มีคำขอจองใหม่จากลูกค้า</div>'
     return
@@ -867,7 +836,6 @@ function renderBookingRequests(requests){
   const statusMap = {
     pending: { label: 'รอดำเนินการ', className: 'status-pending' },
     contacted: { label: 'ติดต่อแล้ว', className: 'status-active' },
-    confirmed: { label: 'ยืนยันแล้ว', className: 'status-active' },
     closed: { label: 'ปิดคำขอ', className: 'status-inactive' }
   }
 
@@ -1633,7 +1601,7 @@ function init(){
   syncAmenityStates()
   updateContactChannels()
   loadBookingRequests({ silent: true })
-  initMessageCenter()
+  // initMessageCenter() // Messages feature disabled
   loadListings()
 }
 

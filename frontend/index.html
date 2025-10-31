@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>U-Nai Dee — คอนโด/บ้านเช่า</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
@@ -18,7 +18,7 @@
         <a id="loginLink" href="#" data-open-modal="login">เข้าสู่ระบบ</a>
         <a id="registerLink" href="#" data-open-modal="register">สมัครสมาชิก</a>
     <a id="landlordLink" href="landlord-dashboard.html" style="display:none">แดชบอร์ดผู้ปล่อยเช่า</a>
-  <a id="messagesLink" href="#" style="display:none">กล่องข้อความ</a>
+    <a id="chatBtn" href="#" style="display:none">กล่องข้อความ</a>
         <a id="adminLink" href="admin-dashboard.html" style="display:none">แดชบอร์ดแอดมิน</a>
         <span id="userStatus" class="user-status" style="display:none">
           <a class="user-name" href="profile.html"></a>
@@ -94,11 +94,11 @@
           <h3 id="authTitle">เข้าสู่ระบบ</h3>
           <label class="field"><span>อีเมล</span><input id="panelEmail" type="email" required /></label>
           <label class="field"><span>รหัสผ่าน</span>
-            <div class="pwd-wrap"><input id="panelPassword" type="password" required /><button type="button" id="panelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#0b9bd7"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+            <div class="pwd-wrap"><input id="panelPassword" type="password" required /><button type="button" id="panelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#3DA5FF"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
           </label>
           <div class="row login-options" style="margin-top:8px">
             <label class="field checkbox" style="margin:0"><input id="rememberMe" type="checkbox" /> จดจำรหัสผ่าน</label>
-            <a href="#" id="forgotLink" style="font-size:13px;color:#0b9bd7;text-decoration:none">ลืมรหัสผ่าน?</a>
+            <a href="#" id="forgotLink" style="font-size:13px;color:#3DA5FF;text-decoration:none">ลืมรหัสผ่าน?</a>
           </div>
           <div id="panelLoginMsg" class="form-msg" aria-live="polite"></div>
           <button id="panelLoginBtn" type="submit" class="btn-primary">เข้าสู่ระบบ</button>
@@ -121,7 +121,7 @@
             <label class="field"><span>อีเมล</span><input id="regEmailPanel" type="email" required /></label>
           </div>
           <label class="field"><span>รหัสผ่าน</span>
-            <div class="pwd-wrap"><input id="regPasswordPanel" type="password" required /><button type="button" id="regPanelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#0b9bd7"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#0b9bd7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+            <div class="pwd-wrap"><input id="regPasswordPanel" type="password" required /><button type="button" id="regPanelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#3DA5FF"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
           </label>
           <label class="field"><span>ยืนยันรหัสผ่าน</span><input id="regPasswordConfirmPanel" type="password" required /></label>
           <div class="field">
@@ -141,5 +141,98 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>
   <!-- Central inbox removed; chat is listing-level only -->
+  
+  <!-- Chat Modal -->
+  <div id="chatModal" class="modal" role="dialog" aria-labelledby="chatModalTitle" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-content chat-modal">
+      <header class="modal-header chat-header">
+        <div class="chat-header-content">
+          <h2 id="chatModalTitle">
+            <svg class="chat-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
+              <path d="M7 9H17V11H7V9ZM7 12H15V14H7V12Z" fill="currentColor"/>
+            </svg>
+            กล่องข้อความ
+          </h2>
+          <div class="chat-status">
+            <span class="status-dot online"></span>
+            ออนไลน์
+          </div>
+        </div>
+        <button type="button" class="modal-close" data-close-modal aria-label="ปิดกล่องข้อความ">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </header>
+      <div class="chat-container">
+        <div class="chat-sidebar">
+          <div class="sidebar-header">
+            <h3>การสนทนา</h3>
+            <div class="sidebar-actions">
+              <button class="sidebar-action-btn" title="ค้นหาการสนทนา">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="conversationsList" class="conversations-list">
+            <div class="conversations-loading">
+              <div class="loading-spinner"></div>
+              <span>กำลังโหลด...</span>
+            </div>
+          </div>
+        </div>
+        <div class="chat-main">
+          <div class="chat-main-header">
+            <div id="currentConversationInfo" class="conversation-info">
+              <div class="conversation-avatar">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"/>
+                </svg>
+              </div>
+              <div class="conversation-details">
+                <div class="conversation-name">เลือกการสนทนา</div>
+                <div class="conversation-status">คลิกที่การสนทนาเพื่อเริ่มแชท</div>
+              </div>
+            </div>
+          </div>
+          <div id="chatMessages" class="chat-messages">
+            <div class="chat-empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
+                </svg>
+              </div>
+              <h4>เริ่มการสนทนา</h4>
+              <p>เลือกการสนทนาจากด้านซ้ายหรือเริ่มสนทนาใหม่</p>
+            </div>
+          </div>
+          <form id="chatForm" class="chat-form">
+            <div class="chat-input-container">
+              <div class="chat-input-group">
+                <input type="text" id="chatMessage" placeholder="พิมพ์ข้อความของคุณที่นี่..." autocomplete="off" />
+                <button type="button" class="chat-attach-btn" title="แนบไฟล์">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16.5 6V17.5C16.5 19.71 14.71 21.5 12.5 21.5C10.29 21.5 8.5 19.71 8.5 17.5V5C8.5 3.62 9.62 2.5 11 2.5C12.38 2.5 13.5 3.62 13.5 5V15.5C13.5 16.05 13.05 16.5 12.5 16.5C11.95 16.5 11.5 16.05 11.5 15.5V6H10V15.5C10 17.16 11.34 18.5 13 18.5C14.66 18.5 16 17.16 16 15.5V5C16 2.79 14.21 1 12 1S8 2.79 8 5V17.5C8 20.54 10.46 23 13.5 23C16.54 23 19 20.54 19 17.5V6H16.5Z" fill="currentColor"/>
+                  </svg>
+                </button>
+              </div>
+              <div id="chatFormMsg" class="form-msg" aria-live="polite"></div>
+              <button type="button" id="chatSendBtn" class="btn-send">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
+                </svg>
+                ส่ง
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
+

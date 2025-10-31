@@ -41,7 +41,7 @@
 
     body {
       margin: 0;
-      font-family: 'Inter', 'Poppins', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', 'Kanit', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       color: var(--gray-800);
@@ -117,12 +117,12 @@
 
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 280px 1fr 280px;
+      grid-template-columns: 280px 1fr;
       gap: 2rem;
       flex: 1;
     }
 
-    .sidebar-left, .sidebar-right {
+    .sidebar-left {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       border-radius: var(--border-radius-xl);
@@ -537,12 +537,8 @@
         gap: 1.5rem;
       }
 
-      .sidebar-left, .sidebar-right {
+      .sidebar-left {
         position: static;
-      }
-
-      .sidebar-right {
-        order: -1;
       }
     }
 
@@ -566,7 +562,7 @@
         gap: 1rem;
       }
 
-      .sidebar-left, .sidebar-right {
+      .sidebar-left {
         padding: 1rem;
       }
 
@@ -597,7 +593,7 @@
       }
     }
 
-    .admin-card, .top-tile, .sidebar-left, .sidebar-right {
+    .admin-card, .top-tile, .sidebar-left {
       animation: fadeInUp 0.6s ease-out;
     }
 
@@ -633,29 +629,25 @@
           </div>
         </div>
         <nav class="nav-list">
-          <a href="#adminStats" class="active">
+          <a href="admin-dashboard.html" class="active">
             <span class="nav-emoji">📊</span>
             Overview
           </a>
-          <a href="#adminListings">
+          <a href="admin-listings.html">
             <span class="nav-emoji">🏠</span>
             Properties
           </a>
-          <a href="#adminBookings">
+          <a href="admin-bookings.html">
             <span class="nav-emoji">📅</span>
             Bookings
           </a>
-          <a href="#adminUsers">
+          <a href="admin-users.html">
             <span class="nav-emoji">👥</span>
             Tenants
           </a>
-          <a href="#adminIssues">
+          <a href="admin-issues.html">
             <span class="nav-emoji">📈</span>
             Reports
-          </a>
-          <a href="#adminStats">
-            <span class="nav-emoji">🔔</span>
-            Notifications
           </a>
         </nav>
       </aside>
@@ -748,13 +740,10 @@
         <div class="card-foot">*ข้อมูลสถิติคำนวนจากระบบภายใน</div>
       </section>
       </main>
-
-      <aside class="sidebar-right">
-          <!-- Events feature removed -->
-      </aside>
     </div>
   </div>
   <script src="admin-dashboard.js"></script>
   <!-- Events modal and UI removed -->
 </body>
 </html>
+

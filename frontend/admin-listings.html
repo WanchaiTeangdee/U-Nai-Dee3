@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Properties - U-Nai Dee</title>
+  <title>จัดการประกาศ - U-Nai Dee</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Calendar feature removed (FullCalendar & icons omitted) -->
   <style>
     :root {
       --primary: #6366f1;
@@ -41,7 +40,7 @@
 
     body {
       margin: 0;
-      font-family: 'Inter', 'Poppins', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', 'Kanit', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       color: var(--gray-800);
@@ -117,12 +116,12 @@
 
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 280px 1fr 280px;
+      grid-template-columns: 280px 1fr;
       gap: 2rem;
       flex: 1;
     }
 
-    .sidebar-left, .sidebar-right {
+    .sidebar-left {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       border-radius: var(--border-radius-xl);
@@ -225,7 +224,7 @@
 
     .admin-content {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      grid-template-columns: 1fr;
       gap: 1.5rem;
     }
 
@@ -414,12 +413,8 @@
         gap: 1.5rem;
       }
 
-      .sidebar-left, .sidebar-right {
+      .sidebar-left {
         position: static;
-      }
-
-      .sidebar-right {
-        order: -1;
       }
     }
 
@@ -443,7 +438,7 @@
         gap: 1rem;
       }
 
-      .sidebar-left, .sidebar-right {
+      .sidebar-left {
         padding: 1rem;
       }
 
@@ -465,7 +460,7 @@
       }
     }
 
-    .admin-card, .sidebar-left, .sidebar-right {
+    .admin-card, .top-tile, .sidebar-left {
       animation: fadeInUp 0.6s ease-out;
     }
 
@@ -476,11 +471,11 @@
   <div class="admin-layout">
     <header class="admin-header">
       <div>
-        <div class="admin-title">Properties</div>
-        <div class="admin-brand-note">จัดการประกาศและสถานะที่พัก</div>
+        <div class="admin-title">จัดการประกาศ</div>
+        <div class="admin-brand-note">จัดการรายการที่พักและสถานะการเผยแพร่</div>
       </div>
       <nav>
-        <a href="admin-dashboard.html" class="btn-outline">กลับหน้าแรก</a>
+        <a href="admin-dashboard.html" class="btn-outline">กลับแดชบอร์ด</a>
       </nav>
     </header>
     <div class="dashboard-grid">
@@ -513,17 +508,9 @@
             <span class="nav-emoji">👥</span>
             Tenants
           </a>
-          <a href="admin-payments.html">
-            <span class="nav-emoji">💳</span>
-            Payments
-          </a>
           <a href="admin-issues.html">
             <span class="nav-emoji">📈</span>
             Reports
-          </a>
-          <a href="admin-notifications.html">
-            <span class="nav-emoji">🔔</span>
-            Notifications
           </a>
         </nav>
       </aside>
@@ -547,13 +534,9 @@
           <div class="empty" hidden>ยังไม่มีรายการที่พัก</div>
         </section>
       </main>
-
-      <aside class="sidebar-right">
-          <!-- Events feature removed -->
-      </aside>
     </div>
   </div>
   <script src="admin-dashboard.js"></script>
-  <!-- Events modal and UI removed -->
 </body>
 </html>
+

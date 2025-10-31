@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>โปรไฟล์ผู้ใช้งาน - U-Nai Dee</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="profile-enhanced.css" />
 </head>
@@ -243,32 +243,6 @@
                 </div>
                 <div class="card-content">
                   <p>ติดตามภาพรวมการประกาศและคำขอล่าสุดของคุณ</p>
-                  <div id="profileSummary" class="stats-grid">
-                    <script>
-                      (function(){
-                        const box = document.getElementById('profileSummary');
-                        if(!box) return;
-                        const stats = [
-                          { icon:'📢', value:2, label:'ประกาศทั้งหมด' },
-                          { icon:'✅', value:2, label:'ประกาศเผยแพร่' },
-                          { icon:'🗓️', value:0, label:'คำขอทั้งหมด' },
-                          { icon:'💬', value:3, label:'บทสนทนาทั้งหมด' },
-                        ];
-                        box.innerHTML = stats.map(s => `
-                          <div class="stat-item">
-                            <div class="stat-icon">${s.icon}</div>
-                            <div class="stat-value">${s.value}</div>
-                            <div class="stat-label">${s.label}</div>
-                          </div>
-                        `).join('');
-                      })();
-                    </script>
-
-                    <div class="empty-state">
-                      <div class="loading-spinner"></div>
-                      <p>กำลังโหลดข้อมูลสถิติ...</p>
-                    </div>
-                  </div>
                 </div>
               </article>
             </div>
@@ -492,50 +466,6 @@
           </div>
         </main>
 
-        <!-- Profile Summary Sidebar -->
-        <aside class="profile-summary">
-          <article class="profile-card summary-card">
-            <div class="card-header">
-              <div class="card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 7H7V5C7 3.89543 7.89543 3 9 3H11C12.1046 3 13 3.89543 13 5V7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M13 7V11C13 12.1046 12.1046 13 11 13H9C7.89543 13 7 12.1046 7 11V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 13V15C9 16.1046 9.89543 17 11 17H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M13 17H15C16.1046 17 17 16.1046 17 15V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M17 13V11C17 9.89543 16.1046 9 15 9H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <h3>สรุปสถานะ</h3>
-            </div>
-            <div class="card-content">
-              <div class="summary-status">
-                <div class="status-item">
-                  <div class="status-indicator" id="accountStatusIndicator">
-                    <div class="status-dot status-active"></div>
-                    <span>บัญชีปกติ</span>
-                  </div>
-                </div>
-                <div class="status-item">
-                  <div class="status-indicator" id="verificationStatusIndicator">
-                    <div class="status-dot status-pending"></div>
-                    <span>รอการยืนยัน</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="summary-actions">
-                <button type="button" class="btn-outline btn-sm" id="quickEditBtn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 5H6C4.89543 5 4 5.89543 4 7V18C4 19.1046 4.89543 20 6 20H17C18.1046 20 19 19.1046 19 18V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M19.0698 6.93L11.9998 14L8.99976 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  แก้ไขด่วน
-                </button>
-              </div>
-            </div>
-          </article>
-        </aside>
-
       </div>
 
       <div id="profileExtras" class="profile-extras"></div>
@@ -545,7 +475,68 @@
     <div class="container">© U-Nai Dee</div>
   </footer>
 
+  <!-- Login Modal -->
+  <!-- Right-side Auth Panel (login/register in split layout like screenshot) -->
+  <aside id="authPanel" class="auth-panel" aria-hidden="true" aria-labelledby="authTitle">
+    <button id="authClose" class="modal-close" aria-label="ปิดแบบฟอร์ม">✕</button>
+    <div class="auth-inner">
+      <div class="auth-tabs">
+        <button id="tabLogin" class="auth-tab active" data-tab="login">เข้าสู่ระบบ</button>
+        <button id="tabRegister" class="auth-tab" data-tab="register">สมัครสมาชิก</button>
+      </div>
+
+      <div id="authContent">
+        <form id="panelLoginForm" class="auth-form" aria-hidden="false">
+          <h3 id="authTitle">เข้าสู่ระบบ</h3>
+          <label class="field"><span>อีเมล</span><input id="panelEmail" type="email" required /></label>
+          <label class="field"><span>รหัสผ่าน</span>
+            <div class="pwd-wrap"><input id="panelPassword" type="password" required /><button type="button" id="panelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#3DA5FF"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          </label>
+          <div class="row login-options" style="margin-top:8px">
+            <label class="field checkbox" style="margin:0"><input id="rememberMe" type="checkbox" /> จดจำรหัสผ่าน</label>
+            <a href="#" id="forgotLink" style="font-size:13px;color:#3DA5FF;text-decoration:none">ลืมรหัสผ่าน?</a>
+          </div>
+          <div id="panelLoginMsg" class="form-msg" aria-live="polite"></div>
+          <button id="panelLoginBtn" type="submit" class="btn-primary">เข้าสู่ระบบ</button>
+
+          <!-- inline password reset (hidden by default) -->
+          <div id="passwordResetBox" style="display:none;margin-top:12px;padding:12px;border-radius:8px;background:#f8fbfd;border:1px solid #eef6fb">
+            <div style="font-weight:600;margin-bottom:6px">รีเซ็ตรหัสผ่าน</div>
+            <input id="resetEmail" type="email" placeholder="กรอกอีเมลสำหรับรีเซ็ต" style="width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px" />
+            <div style="display:flex;gap:8px"><button id="sendResetBtn" class="btn-primary" style="flex:1">ส่งลิงก์รีเซ็ต</button><button id="cancelResetBtn" class="btn-outline btn-sm" style="flex:0">ยกเลิก</button></div>
+            <div id="resetMsg" class="form-msg" aria-live="polite"></div>
+          </div>
+        </form>
+
+        <form id="panelRegisterForm" class="auth-form" aria-hidden="true">
+          <h3>สมัครสมาชิก</h3>
+          <!-- moved: username to top -->
+          <label class="field"><span>ชื่อผู้ใช้</span><input id="regUsernamePanel" type="text" required /></label>
+          <div class="two-cols">
+            <label class="field"><span>เบอร์โทรศัพท์</span><input id="phone" type="tel" /></label>
+            <label class="field"><span>อีเมล</span><input id="regEmailPanel" type="email" required /></label>
+          </div>
+          <label class="field"><span>รหัสผ่าน</span>
+            <div class="pwd-wrap"><input id="regPasswordPanel" type="password" required /><button type="button" id="regPanelTogglePwd" class="icon-btn" aria-label="show password" title="แสดง/ซ่อนรหัสผ่าน"><svg class="icon-eye icon-eye-open" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M32 16C16 16 4 32 4 32s12 16 28 16 28-16 28-16-12-16-28-16Zm0 26a10 10 0 1 1 10-10 10 10 0 0 1-10 10Z" fill="#3DA5FF"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg><svg class="icon-eye icon-eye-closed" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 8 56 56" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round"/><path d="M23 19a29 29 0 0 1 9-3c16 0 28 16 28 16a44 44 0 0 1-9 9" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 24a44 44 0 0 0-8 8s12 16 28 16a30 30 0 0 0 8-1" fill="none" stroke="#3DA5FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          </label>
+          <label class="field"><span>ยืนยันรหัสผ่าน</span><input id="regPasswordConfirmPanel" type="password" required /></label>
+          <div class="field">
+            <span>ประเภทบัญชี</span>
+            <div class="role-options" role="radiogroup" aria-label="เลือกประเภทผู้ใช้งาน">
+              <label class="role-option"><input type="radio" name="regRole" value="customer" checked /><span>ลูกค้า</span></label>
+              <label class="role-option"><input type="radio" name="regRole" value="landlord" /><span>ผู้ปล่อยเช่า</span></label>
+            </div>
+          </div>
+          <div class="pw-hint">ต้องมีอย่างน้อย 8 ตัวอักษร มีตัวใหญ่ ตัวเล็ก และตัวเลข</div>
+          <div id="panelRegMsg" class="form-msg" aria-live="polite"></div>
+          <button id="panelRegisterBtn" type="submit" class="btn-primary">สมัครสมาชิก</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
   <script src="app.js"></script>
   <script src="profile.js"></script>
 </body>
 </html>
+
