@@ -398,7 +398,7 @@ button:focus, input:focus, select:focus, a:focus{outline:3px solid rgba(11,155,2
 
 .profile-hero{padding:60px 0 40px;background:linear-gradient(180deg,#f2f8ff 0%,#f8fbff 100%)}
 .profile-hero h1{margin:0;font-size:32px;color:#0b5c97}
-.profile-subtitle{margin:8px 0 0 0;font-size:16px;color:#5a6f85}
+.profile-subtitle{margin:8px 0 0 0;font-size:16px;color:#f2f8ff}
 .profile-content{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;padding:40px 0 80px 0}
 .profile-card{background:#fff;border-radius:22px;box-shadow:0 24px 48px rgba(15,101,160,0.12);padding:28px;border:1px solid rgba(11,155,215,0.08)}
 .profile-card h2{margin:0 0 18px 0;font-size:20px;color:#0b5c97}
