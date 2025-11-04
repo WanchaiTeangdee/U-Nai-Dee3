@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>โปรไฟล์ผู้ใช้งาน - U-Nai Dee</title>
+  <title>แจ้งปัญหา / สอบถาม - U-Nai Dee</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="profile-enhanced.css" />
 </head>
-<body class="profile-page">
+<body class="profile-page profile-support-page">
   <header class="profile-appbar">
     <div class="appbar-inner">
       <div class="appbar-brand">U-Nai Dee</div>
@@ -34,11 +34,11 @@
 
   <main class="profile-shell">
     <div class="profile-wrapper">
-      <h1 class="profile-title">ภาพรวมบัญชี</h1>
+      <h1 class="profile-title">แจ้งปัญหา / สอบถาม</h1>
 
       <div id="profileAuthGate" class="profile-auth-gate" hidden>
         <h2>กรุณาเข้าสู่ระบบ</h2>
-        <p>เข้าสู่ระบบหรือสมัครสมาชิกเพื่อจัดการโปรไฟล์และข้อมูลบัญชีของคุณ</p>
+        <p>เข้าสู่ระบบหรือสมัครสมาชิกเพื่อส่งคำร้องและติดตามสถานะการแจ้งปัญหา</p>
         <div class="gate-actions">
           <button type="button" class="btn-primary" data-open-modal="login">เข้าสู่ระบบ</button>
           <button type="button" class="btn-outline" data-open-modal="register">สมัครสมาชิก</button>
@@ -49,139 +49,16 @@
         <aside class="profile-sidebar" aria-label="เมนูโปรไฟล์">
           <h2 class="sidebar-title">เมนูบัญชี</h2>
           <nav class="sidebar-nav">
-            <a class="sidebar-link" href="#accountOverview">ภาพรวมบัญชี</a>
-            <a class="sidebar-link" href="profile-support.html">แจ้งปัญหา/สอบถาม</a>
+            <a class="sidebar-link" href="profile.html#accountOverview">ภาพรวมบัญชี</a>
+            <a class="sidebar-link is-active" href="profile-support.html" aria-current="page">แจ้งปัญหา/สอบถาม</a>
             <a class="sidebar-link" href="profile-edit.html">แก้ไขโปรไฟล์</a>
           </nav>
         </aside>
 
-        <div class="profile-content" id="accountOverview">
-            <section class="profile-summary-card">
-              <div class="summary-avatar">
-                <div class="avatar-circle" id="profileAvatar">M</div>
-                <input type="file" id="avatarUploadInput" accept="image/*" hidden>
-              </div>
-
-              <div class="summary-heading">
-                <p class="summary-name">
-                  <span id="profileDisplayName">-</span>
-                  <span id="profileName" class="sr-only">-</span>
-                </p>
-                <p class="summary-role">
-                  <span id="profileDisplayRole">-</span>
-                  <span id="profileRole" class="sr-only">-</span>
-                </p>
-                <p class="summary-email">
-                  <span id="profileDisplayEmail">-</span>
-                  <span id="profileEmail" class="sr-only">-</span>
-                </p>
-              </div>
-
-              <dl class="summary-meta">
-                <div class="meta-item">
-                  <dt>สมาชิกตั้งแต่</dt>
-                  <dd>
-                    <span id="profileDisplayCreated">-</span>
-                    <span id="profileCreated" class="sr-only">-</span>
-                  </dd>
-                </div>
-                <div class="meta-item">
-                  <dt>เบอร์ติดต่อ</dt>
-                  <dd>
-                    <span id="profileDisplayPhone">-</span>
-                    <span id="profilePhone" class="sr-only">-</span>
-                  </dd>
-                </div>
-                <div class="meta-item" id="profileLastLoginWrapper">
-                  <dt>เข้าสู่ระบบล่าสุด</dt>
-                  <dd id="profileLastLogin">-</dd>
-                </div>
-              </dl>
-
-              <div class="summary-divider" role="presentation"></div>
-
-              <section class="summary-booking-overview" aria-labelledby="bookingOverviewTitle">
-                <div class="summary-booking-header">
-                  <div>
-                    <h2 id="bookingOverviewTitle">คำขอจองของฉัน</h2>
-                    <p class="summary-subtitle">ตรวจสอบสถานะคำขอจองอสังหาที่คุณเคยส่งหาเจ้าของที่พัก</p>
-                  </div>
-                  <span class="summary-count" id="overviewBookingTotal">0 รายการ</span>
-                </div>
-                <ul class="summary-booking-list" id="overviewBookingList" aria-live="polite"></ul>
-                <div class="summary-booking-empty" id="overviewBookingEmpty">ยังไม่มีคำขอจองที่คุณส่งไว้</div>
-              </section>
-
-              <!-- <div class="account-status-indicator" hidden>
-                <div class="status-icon" aria-hidden="true"></div>
-                <div class="status-copy">
-                  <span id="accountStatusBadge" class="status-badge"></span>
-                  <p id="accountStatusMessage"></p>
-                </div>
-              </div> -->
-            </section>
-
-            <section class="profile-details-card">
-              <header class="details-header">
-                <h2>รายละเอียดบัญชี</h2>
-                <p class="details-subtitle">ข้อมูลเพิ่มเติมเกี่ยวกับบัญชีของคุณ</p>
-              </header>
-
-              <dl class="details-grid">
-                <div class="details-item">
-                  <dt>ชื่อบัญชี</dt>
-                  <dd id="detailName">-</dd>
-                </div>
-                <div class="details-item">
-                  <dt>อีเมล</dt>
-                  <dd id="detailEmail">-</dd>
-                </div>
-                <div class="details-item">
-                  <dt>เบอร์ติดต่อ</dt>
-                  <dd id="detailPhone">-</dd>
-                </div>
-                <div class="details-item">
-                  <dt>บทบาทผู้ใช้งาน</dt>
-                  <dd id="detailRole">-</dd>
-                </div>
-                <div class="details-item">
-                  <dt>สมาชิกตั้งแต่</dt>
-                  <dd id="detailCreated">-</dd>
-                </div>
-                <div class="details-item">
-                  <dt>เข้าสู่ระบบล่าสุด</dt>
-                  <dd id="detailLastLogin">-</dd>
-                </div>
-                <div class="details-item">
-                  <dt>สถานะอีเมล</dt>
-                  <dd id="detailEmailStatus">
-                    <span id="detailEmailStatusLabel">-</span>
-                    <button type="button" id="detailEmailVerifyBtn" class="link-button" hidden>ส่งลิงก์ยืนยัน</button>
-                  </dd>
-                </div>
-              </dl>
-
-              <p id="emailStatusMessage" class="details-note" aria-live="polite"></p>
-
-              <div class="details-stats" role="group" aria-label="สถิติการใช้งาน">
-                <div class="details-stat">
-                  <span class="details-stat-label">ประกาศทั้งหมด</span>
-                  <span class="details-stat-value" id="detailListings">-</span>
-                </div>
-                <div class="details-stat">
-                  <span class="details-stat-label">คำขอที่เคยส่ง</span>
-                  <span class="details-stat-value" id="detailBookings">-</span>
-                </div>
-                <div class="details-stat">
-                  <span class="details-stat-label">บทสนทนาทั้งหมด</span>
-                  <span class="details-stat-value" id="detailConversations">-</span>
-                </div>
-                <div class="details-stat">
-                  <span class="details-stat-label">ข้อความที่ยังไม่อ่าน</span>
-                  <span class="details-stat-value" id="detailUnread">-</span>
-                </div>
-              </div>
-            </section>
+        <div class="profile-support-main">
+          <article class="profile-support-card" aria-label="ศูนย์แจ้งปัญหา">
+            <div id="userIssueCenter" class="issue-widget-host" aria-live="polite"></div>
+          </article>
         </div>
       </div>
     </div>

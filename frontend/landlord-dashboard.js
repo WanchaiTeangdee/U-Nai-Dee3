@@ -186,6 +186,24 @@ function setCardCollapsed(card, collapsed){
   card.setAttribute('data-collapsed', isCollapsed ? 'true' : 'false')
   toggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true')
   body.hidden = isCollapsed
+
+  if(!isCollapsed && body.querySelector('#listingMap')){
+    setTimeout(() => {
+      try{
+        if(mapInstance){
+          mapInstance.invalidateSize()
+          if(mapMarker){
+            const markerLatLng = mapMarker.getLatLng()
+            mapInstance.setView(markerLatLng, Math.max(mapInstance.getZoom(), 14))
+          }else{
+            mapInstance.setView(MAP_DEFAULT_CENTER, Math.max(mapInstance.getZoom(), 12))
+          }
+        }
+      }catch(err){
+        console.warn('map resize error', err)
+      }
+    }, 150)
+  }
 }
 
 function initCollapsibles(){
@@ -215,7 +233,6 @@ let currentListings = []
 let removedImages = new Set()
 let currentBookingRequests = []
 let bookingStatusResetTimer = null
-
 const defaultFormTexts = {
   title: elements.formTitle?.textContent || '',
   desc: elements.formDesc?.textContent || '',
@@ -725,7 +742,7 @@ function renderListings(listings){
     container.innerHTML = '<div class="empty-state">ยังไม่มีประกาศ กรุณากรอกฟอร์มด้านบนเพื่อเริ่มต้น</div>'
     return
   }
-  const rows = currentListings.map((listing) => {
+  const cards = currentListings.map((listing) => {
     const statusKey = listing.status || 'pending'
     const statusLabels = {
       pending: 'รอตรวจสอบ',
@@ -749,59 +766,59 @@ function renderListings(listings){
     const listingIdStr = String(listing.id)
     const isEditingRow = currentEditId !== null && Number(listing.id) === Number(currentEditId)
     return `
-      <tr class="landlord-row${isEditingRow ? ' is-editing' : ''}" data-listing-id="${escapeHtml(listingIdStr)}">
-        <td class="cell-title">
-          <div class="listing-name">${escapeHtml(listing.title || '-')}</div>
-          <div class="table-sub">สิ่งอำนวยความสะดวก: ${amenitiesText}</div>
-          <div class="table-sub">รูปภาพ: ${escapeHtml(String(imageCount))}</div>
-        </td>
-        <td class="cell-type">
-          <span class="table-badge">${escapeHtml(LANDLORD_ROLE_LABELS[listing.property_type] || listing.property_type || '-')}</span>
-        </td>
-        <td class="cell-price">
-          <div class="table-price">
-            <span class="price-amount">${escapeHtml(priceAmount)}</span>
-            <span class="price-unit">${escapeHtml(priceUnit)}</span>
+      <article class="listing-card landlord-row${isEditingRow ? ' is-editing' : ''}" data-listing-id="${escapeHtml(listingIdStr)}">
+        <header class="listing-card-header">
+          <div class="listing-card-title">
+            <h3 class="listing-name">${escapeHtml(listing.title || '-')}</h3>
+            <div class="listing-card-meta">
+              <span class="listing-type-tag">${escapeHtml(LANDLORD_ROLE_LABELS[listing.property_type] || listing.property_type || '-')}</span>
+              <span class="status-pill status-${escapeHtml(statusKey)}">${escapeHtml(statusLabel || '-')}</span>
+            </div>
           </div>
-        </td>
-        <td class="cell-location">
-          <div class="location-main">${escapeHtml(listing.province || '-')}</div>
-          <div class="table-sub">พิกัด: ${escapeHtml(locationText)}</div>
-        </td>
-        <td class="cell-contact">
-          <div class="table-chip-list">
-            ${contactChips}
-          </div>
-        </td>
-        <td class="cell-status">
-          <span class="status-pill status-${escapeHtml(statusKey)}">${escapeHtml(statusLabel || '-')}</span>
-        </td>
-        <td class="cell-actions">
           <button type="button" class="table-action-btn edit-listing-btn" data-id="${escapeHtml(listingIdStr)}">แก้ไข</button>
-        </td>
-        <td class="cell-updated">
-          <span class="updated-date">${escapeHtml(listing.updated_at || '-')}</span>
-        </td>
-      </tr>
+        </header>
+        <div class="listing-card-body">
+          <div class="listing-info-block listing-price">
+            <span class="listing-info-label">ราคา</span>
+            <div class="listing-info-value listing-price-value">
+              <span class="price-amount">${escapeHtml(priceAmount)}</span>
+              <span class="price-unit">${escapeHtml(priceUnit)}</span>
+            </div>
+          </div>
+          <div class="listing-info-block listing-location">
+            <span class="listing-info-label">จังหวัด</span>
+            <div class="listing-info-value">
+              <span class="location-main">${escapeHtml(listing.province || '-')}</span>
+              <span class="listing-subtext">พิกัด: ${escapeHtml(locationText)}</span>
+            </div>
+          </div>
+          <div class="listing-info-block listing-images">
+            <span class="listing-info-label">รูปภาพ</span>
+            <span class="listing-info-value">${escapeHtml(String(imageCount))} รูป</span>
+          </div>
+          <div class="listing-info-block listing-amenities">
+            <span class="listing-info-label">สิ่งอำนวยความสะดวก</span>
+            <span class="listing-info-value">${amenitiesText}</span>
+          </div>
+          <div class="listing-info-block listing-contact">
+            <span class="listing-info-label">ช่องทางติดต่อ</span>
+            <div class="listing-info-value table-chip-list">
+              ${contactChips}
+            </div>
+          </div>
+        </div>
+        <footer class="listing-card-footer">
+          <span class="listing-updated">อัปเดตล่าสุด: <span class="updated-date">${escapeHtml(listing.updated_at || '-')}</span></span>
+          ${hasCoords ? `<span class="listing-coordinates">พิกัดแผนที่: ${escapeHtml(locationText)}</span>` : ''}
+        </footer>
+      </article>
     `
   }).join('')
   container.innerHTML = `
-    <div class="landlord-table-wrapper">
-      <table class="landlord-table">
-        <thead>
-          <tr>
-            <th>ชื่อประกาศ</th>
-            <th>ประเภท</th>
-            <th>ราคา/เดือน</th>
-            <th>จังหวัด / พิกัด</th>
-            <th>ติดต่อ</th>
-            <th>สถานะ</th>
-            <th>จัดการ</th>
-            <th>อัปเดตล่าสุด</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+    <div class="my-listings-layout">
+      <div class="listing-card-grid">
+        ${cards}
+      </div>
     </div>
   `
   container.querySelectorAll('.edit-listing-btn').forEach((btn) => {
@@ -859,13 +876,13 @@ function renderBookingRequests(requests){
 
   const rows = currentBookingRequests.map((req) => {
     const requesterName = req.requester_name ? escapeHtml(req.requester_name) : '-'
-    const emailSub = req.requester_email ? `<span class="table-sub">อีเมล: ${escapeHtml(req.requester_email)}</span>` : ''
-    const phoneSub = req.requester_phone ? `<span class="table-sub">โทร: ${escapeHtml(req.requester_phone)}</span>` : ''
+    const emailMeta = req.requester_email ? `<span class="table-sub">อีเมล: ${escapeHtml(req.requester_email)}</span>` : ''
+    const phoneMeta = req.requester_phone ? `<span class="table-sub">โทร: ${escapeHtml(req.requester_phone)}</span>` : ''
     const listingTitle = req.listing_title ? escapeHtml(req.listing_title) : '-'
-    const listingId = Number.isFinite(Number(req.listing_id)) ? `<span class="table-sub">รหัสประกาศ: ${escapeHtml(String(req.listing_id))}</span>` : ''
+    const listingIdText = Number.isFinite(Number(req.listing_id)) ? escapeHtml(String(req.listing_id)) : ''
     const safeMessage = typeof req.message === 'string' && req.message.trim() !== '' ? escapeHtml(req.message).replace(/\n/g, '<br>') : ''
     const messageHtml = safeMessage
-      ? `<div class="table-message">${safeMessage}</div>`
+      ? `<div class="booking-message">${safeMessage}</div>`
       : '<span class="table-sub">ไม่มีข้อความเพิ่มเติม</span>'
     const createdText = formatDateTime(req.created_at) || '-'
     const normalizedStatusKey = typeof req.status === 'string' ? req.status.toLowerCase() : 'pending'
@@ -891,19 +908,25 @@ function renderBookingRequests(requests){
       </div>
     `
 
+    const contactMetaHtml = emailMeta || phoneMeta ? `<div class="booking-contact-meta">${emailMeta}${phoneMeta}</div>` : ''
+    const listingMetaHtml = listingIdText ? `<div class="booking-listing-meta"><span class="table-sub">รหัสประกาศ: ${listingIdText}</span></div>` : ''
+
     return `
       <tr>
         <td>
-          ${requesterName}
-          ${emailSub}
-          ${phoneSub}
+          <div class="booking-contact">
+            <span class="booking-contact-name">${requesterName}</span>
+            ${contactMetaHtml}
+          </div>
         </td>
         <td>
-          ${listingTitle}
-          ${listingId}
+          <div class="booking-listing">
+            <span class="booking-listing-title">${listingTitle}</span>
+            ${listingMetaHtml}
+          </div>
         </td>
         <td>${messageHtml}</td>
-        <td>${escapeHtml(createdText)}</td>
+        <td><span class="booking-date">${escapeHtml(createdText)}</span></td>
         <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
         <td>${actionsHtml}</td>
       </tr>
@@ -911,8 +934,16 @@ function renderBookingRequests(requests){
   }).join('')
 
   container.innerHTML = `
-    <div style="overflow-x:auto">
-      <table>
+    <div class="booking-table-wrapper">
+      <table class="booking-table">
+        <colgroup>
+          <col class="col-requester" />
+          <col class="col-listing" />
+          <col class="col-message" />
+          <col class="col-date" />
+          <col class="col-status" />
+          <col class="col-actions" />
+        </colgroup>
         <thead>
           <tr>
             <th>ผู้จอง</th>

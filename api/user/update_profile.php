@@ -18,6 +18,7 @@ if(!is_array($payload)){
 
 $name = isset($payload['name']) ? trim((string)$payload['name']) : null;
 $email = isset($payload['email']) ? trim((string)$payload['email']) : null;
+$phone = array_key_exists('phone', $payload) ? trim((string)$payload['phone']) : null;
 $currentPassword = isset($payload['current_password']) ? (string)$payload['current_password'] : '';
 $newPassword = isset($payload['new_password']) ? (string)$payload['new_password'] : '';
 $confirmPassword = isset($payload['confirm_password']) ? (string)$payload['confirm_password'] : '';
@@ -31,6 +32,16 @@ if($name !== null && $name !== '' && mb_strlen($name, 'UTF-8') > 120){
     http_response_code(422);
     echo json_encode(['error' => 'name_too_long']);
     exit;
+}
+
+if($phone !== null){
+    $normalizedPhone = $phone === '' ? null : $phone;
+    if($normalizedPhone !== null && !preg_match('/^[0-9+\-()\s]{7,20}$/', $normalizedPhone)){
+        http_response_code(422);
+        echo json_encode(['error' => 'invalid_phone']);
+        exit;
+    }
+    $phone = $normalizedPhone;
 }
 
 $changePassword = $newPassword !== '';
@@ -62,7 +73,7 @@ if(!$user){
 
 $userId = (int)$user['id'];
 
-$profileStmt = $mysqli->prepare('SELECT email, name, password_hash FROM users WHERE id = ? LIMIT 1');
+$profileStmt = $mysqli->prepare('SELECT email, name, phone, password_hash, email_verified, email_verified_at FROM users WHERE id = ? LIMIT 1');
 if(!$profileStmt){
     http_response_code(500);
     echo json_encode(['error' => 'profile_lookup_failed']);
@@ -106,7 +117,11 @@ if($email !== null && $email !== '' && $email !== $current['email']){
     }
     $checkStmt->close();
     $updates['email'] = $email;
+    $emailChanged = true;
 }
+
+$emailChanged = array_key_exists('email', $updates);
+$verifiedAtNow = null;
 
 if($changePassword){
     if(!password_verify($currentPassword, $current['password_hash'] ?? '')){
@@ -118,6 +133,28 @@ if($changePassword){
     $updates['password_hash'] = $newHash;
 }
 
+if($emailChanged){
+    $verifiedAtNow = date('Y-m-d H:i:s');
+    $updates['email_verified'] = 1;
+    $updates['email_verified_at'] = $verifiedAtNow;
+} else {
+    if((int)($current['email_verified'] ?? 0) !== 1){
+        $updates['email_verified'] = 1;
+    }
+    if(($current['email_verified_at'] ?? null) === null){
+        $verifiedAtNow = date('Y-m-d H:i:s');
+        $updates['email_verified_at'] = $verifiedAtNow;
+    }
+}
+
+if($phone !== null && $phone !== ($current['phone'] ?? null)){
+    $updates['phone'] = $phone;
+}
+
+if($phone === null && array_key_exists('phone', $payload) && $current['phone'] !== null){
+    $updates['phone'] = null;
+}
+
 if(empty($updates)){
     echo json_encode([
         'success' => true,
@@ -125,7 +162,10 @@ if(empty($updates)){
             'id' => $userId,
             'email' => $current['email'],
             'name' => $current['name'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'phone' => $current['phone'],
+            'email_verified' => (int)($current['email_verified'] ?? 1),
+            'email_verified_at' => $current['email_verified_at'] ?? null
         ]
     ], JSON_UNESCAPED_UNICODE);
     exit;
@@ -168,8 +208,15 @@ if(!$updateStmt->execute()){
 }
 $updateStmt->close();
 
-$newEmail = $updates['email'] ?? $current['email'];
-$newName = $updates['name'] ?? $current['name'];
+$newEmail = array_key_exists('email', $updates) ? $updates['email'] : $current['email'];
+$newName = array_key_exists('name', $updates) ? $updates['name'] : $current['name'];
+$newPhone = array_key_exists('phone', $updates) ? $updates['phone'] : $current['phone'];
+$newVerified = (int)($updates['email_verified'] ?? $current['email_verified'] ?? 1);
+$newVerifiedAt = $updates['email_verified_at'] ?? $current['email_verified_at'] ?? $verifiedAtNow;
+
+if($newVerifiedAt === null && $verifiedAtNow !== null){
+    $newVerifiedAt = $verifiedAtNow;
+}
 
 $response = [
     'success' => true,
@@ -177,7 +224,10 @@ $response = [
         'id' => $userId,
         'email' => $newEmail,
         'name' => $newName,
-        'role' => $user['role']
+        'role' => $user['role'],
+        'phone' => $newPhone,
+        'email_verified' => (int)$newVerified,
+        'email_verified_at' => $newVerifiedAt
     ]
 ];
 

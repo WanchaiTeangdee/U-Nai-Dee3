@@ -16,7 +16,7 @@ function get_bearer_token(){
 
 function get_user_from_token($mysqli, $token){
     if(!$token) return null;
-    $stmt = $mysqli->prepare('SELECT u.id, u.email, u.name, u.role FROM tokens t JOIN users u ON t.user_id = u.id WHERE t.token = ? AND t.expires_at > NOW()');
+    $stmt = $mysqli->prepare('SELECT u.id, u.email, u.name, u.role, u.phone, u.email_verified, u.email_verified_at, u.last_login FROM tokens t JOIN users u ON t.user_id = u.id WHERE t.token = ? AND t.expires_at > NOW()');
     $stmt->bind_param('s', $token);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -34,6 +34,9 @@ function require_auth($mysqli = null){
     $user = get_user_from_token($mysqli, $token);
     if(!$user) return null;
     $user['id'] = (int)$user['id'];
+    if(isset($user['email_verified'])){
+        $user['email_verified'] = (int)$user['email_verified'];
+    }
     return $user;
 }
 

@@ -394,6 +394,109 @@
       border-bottom: none;
     }
 
+    #adminOverviewCharts .chart-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 280px;
+    }
+
+    #adminOverviewCharts canvas,
+    #adminListingsChart canvas {
+      width: 100% !important;
+      height: 280px !important;
+    }
+    #adminListingsChart .chart-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 280px;
+    }
+
+    .chart-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .chart-detail-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
+      border-radius: var(--border-radius-lg);
+      padding: 1rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      border: 1px solid rgba(99, 102, 241, 0.08);
+    }
+
+    .chart-detail-card .label {
+      font-weight: 600;
+      color: var(--gray-700);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .chart-detail-card .value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .chart-detail-card .percent {
+      font-size: 0.85rem;
+      color: var(--gray-500);
+    }
+
+    #adminListingsChart .chart-summary {
+      margin-top: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      align-items: start;
+    }
+
+    #adminListingsChart .summary-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
+      border-radius: var(--border-radius-lg);
+      padding: 1rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(16, 185, 129, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    #adminListingsChart .summary-card .label {
+      font-weight: 600;
+      color: var(--gray-700);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    #adminListingsChart .summary-card .value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    #adminListingsChart .summary-card .note {
+      font-size: 0.85rem;
+      color: var(--gray-500);
+    }
+
+    #adminListingsChart .summary-total {
+      grid-column: 1 / -1;
+      font-size: 0.9rem;
+      color: var(--gray-600);
+      background: rgba(99, 102, 241, 0.08);
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius-lg);
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      box-shadow: var(--shadow-sm);
+    }
+
     .empty {
       text-align: center;
       color: var(--gray-500);
@@ -531,6 +634,134 @@
       color: var(--gray-600);
     }
 
+    .issue-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .issue-summary-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+      border-radius: var(--border-radius-lg);
+      padding: 1rem 1.25rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(99, 102, 241, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .issue-summary-card .label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .issue-summary-card .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .issue-summary-card .note {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+    }
+
+    .issue-subject {
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .issue-preview {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+      margin-top: 0.35rem;
+      max-width: 420px;
+      line-height: 1.4;
+    }
+
+    .issue-reporter {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .issue-reporter .name {
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .issue-reporter .email {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+    }
+
+    .issue-reporter .role {
+      font-size: 0.72rem;
+      color: var(--gray-400);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .issue-status-pill,
+    .issue-priority-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .issue-status--new { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
+    .issue-status--in_progress { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .issue-status--resolved { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .issue-status--closed { background: rgba(107, 114, 128, 0.15); color: var(--gray-600); }
+
+    .issue-priority--low { background: rgba(148, 163, 184, 0.15); color: var(--gray-600); }
+    .issue-priority--normal { background: rgba(99, 102, 241, 0.12); color: var(--primary); }
+    .issue-priority--high { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .issue-priority--urgent { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+    .issue-actions {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .link-button:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
     @media (max-width: 1024px) {
       .dashboard-grid {
         grid-template-columns: 1fr;
@@ -637,90 +868,152 @@
             <span class="nav-emoji">🏠</span>
             Properties
           </a>
-          <a href="admin-bookings.html">
-            <span class="nav-emoji">📅</span>
-            Bookings
-          </a>
           <a href="admin-users.html">
             <span class="nav-emoji">👥</span>
             Tenants
           </a>
           <a href="admin-issues.html">
-            <span class="nav-emoji">📈</span>
-            Reports
+            <span class="nav-emoji">🛠️</span>
+            รายงานปัญหา
           </a>
         </nav>
       </aside>
 
       <main class="admin-content main-col">
-        <section class="admin-card" id="adminUsers">
+      <section class="admin-card" id="adminOverviewCharts">
         <h3>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 3V12L16.5 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          โปรไฟล์ผู้ใช้ทั้งหมด
+          กราฟภาพรวมผู้ใช้
         </h3>
-        <div class="table-container">
-        <table>
-          <thead>
-            <tr><th>ชื่อ</th><th>อีเมล</th><th>บทบาท</th><th>สมัครเมื่อ</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="chart-wrapper">
+          <canvas id="roleDistributionChart" aria-label="สัดส่วนผู้ใช้ตามบทบาท" role="img"></canvas>
         </div>
-        <div class="empty" hidden>ยังไม่มีข้อมูลผู้ใช้</div>
+        <div class="chart-details" id="roleChartDetails" hidden>
+          <div class="chart-detail-card" data-role="admin">
+            <div class="label">
+              <span class="dot" style="width:10px;height:10px;border-radius:50%;background:#f59e0b;"></span>
+              แอดมิน
+            </div>
+            <div class="value"><span id="roleCount-admin">0</span> คน</div>
+            <div class="percent" id="rolePercent-admin">0%</div>
+          </div>
+          <div class="chart-detail-card" data-role="landlord">
+            <div class="label">
+              <span class="dot" style="width:10px;height:10px;border-radius:50%;background:#10b981;"></span>
+              ผู้ปล่อยเช่า
+            </div>
+            <div class="value"><span id="roleCount-landlord">0</span> คน</div>
+            <div class="percent" id="rolePercent-landlord">0%</div>
+          </div>
+          <div class="chart-detail-card" data-role="customer">
+            <div class="label">
+              <span class="dot" style="width:10px;height:10px;border-radius:50%;background:#6366f1;"></span>
+              ลูกค้า
+            </div>
+            <div class="value"><span id="roleCount-customer">0</span> คน</div>
+            <div class="percent" id="rolePercent-customer">0%</div>
+          </div>
+        </div>
+        <div class="empty" id="roleChartEmpty" hidden>ยังไม่มีข้อมูลสำหรับแสดงกราฟ</div>
       </section>
-      <section class="admin-card" id="adminListings">
+      <section class="admin-card" id="adminListingsChart">
         <h3>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 21V5C19 3.89543 18.1046 3 17 3H7C5.89543 3 5 3.89543 5 5V21M19 21L21 21M19 21H14M5 21L3 21M5 21H10M9 6.5H15M9 10.5H15M9 14.5H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 21V10C4 8.89543 4.89543 8 6 8H9C10.1046 8 11 8.89543 11 10V21M11 21V5C11 3.89543 11.8954 3 13 3H18C19.1046 3 20 3.89543 20 5V21M3 21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          รายการห้อง &amp; สถานะ
+          ประเภทที่พัก (คอนโด vs บ้านเช่า)
         </h3>
-        <div class="table-container">
-        <table data-nowrap="true">
-          <thead>
-            <tr><th>ชื่อห้อง</th><th>เจ้าของ</th><th>สถานะ</th><th>ปรับสถานะ</th><th>อัปเดตล่าสุด</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="chart-wrapper">
+          <canvas id="listingsTypeChart" aria-label="จำนวนที่พักตามประเภท" role="img"></canvas>
         </div>
-        <div class="empty" hidden>ยังไม่มีรายการที่พัก</div>
-      </section>
-      <section class="admin-card" id="adminBookings">
-        <h3>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          การจอง &amp; ประวัติการเช่า
-        </h3>
-        <div class="table-container">
-        <table data-nowrap="true">
-          <thead>
-            <tr><th>ผู้จอง</th><th>ที่พัก</th><th>ช่วงเวลา</th><th>สถานะ</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="chart-summary" id="listingsChartDetails" hidden>
+          <div class="summary-card" data-type="condo">
+            <div class="label">
+              <span class="dot" style="width:10px;height:10px;border-radius:50%;background:#6366f1;"></span>
+              คอนโด
+            </div>
+            <div class="value"><span id="listingsCount-condo">0</span> รายการ</div>
+            <div class="note">แบ่งปันทั้งหมดที่อยู่ในหมวดคอนโด</div>
+          </div>
+          <div class="summary-card" data-type="house">
+            <div class="label">
+              <span class="dot" style="width:10px;height:10px;border-radius:50%;background:#10b981;"></span>
+              บ้านเช่า
+            </div>
+            <div class="value"><span id="listingsCount-house">0</span> รายการ</div>
+            <div class="note">รวมประกาศที่เป็นบ้านหรือทาวน์โฮม</div>
+          </div>
+          <div class="summary-total" id="listingsChartNote" hidden>
+            รวมทั้งสิ้น <strong><span id="listingsTotalCount">0</span> รายการ</strong> ในระบบขณะนี้
+          </div>
         </div>
-        <div class="empty" hidden>ยังไม่มีการจอง</div>
+        <div class="empty" id="listingsChartEmpty" hidden>ยังไม่มีข้อมูลรายการที่พัก</div>
       </section>
       <section class="admin-card" id="adminIssues">
         <h3>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 9V11M12 15H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4.318 5.318A2.25 2.25 0 014.94 3.94l5.25-2.1a2.25 2.25 0 011.62 0l5.25 2.1a2.25 2.25 0 01.622 1.378c.081.71.118 1.482.118 2.356 0 5.744-3.33 10.74-8.25 12.944-4.92-2.204-8.25-7.2-8.25-12.944 0-.874.037-1.646.118-2.356z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          รายงานปัญหา / รีวิว / การร้องเรียน
+          รายงานปัญหา / คำร้อง
         </h3>
-        <div class="table-container">
-        <table>
-          <thead>
-            <tr><th>ประเภท</th><th>ผู้รายงาน</th><th>หัวข้อ</th><th>สถานะ</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="issue-summary" id="issueSummary" hidden>
+          <div class="issue-summary-card">
+            <div class="label">รวมทั้งหมด</div>
+            <div class="value" id="issueCountTotal">0</div>
+            <div class="note">ทุกสถานะรวมกัน</div>
+          </div>
+          <div class="issue-summary-card">
+            <div class="label">รายการใหม่</div>
+            <div class="value" id="issueCountNew">0</div>
+            <div class="note">รอเจ้าหน้าที่รับเรื่อง</div>
+          </div>
+          <div class="issue-summary-card">
+            <div class="label">ระหว่างดำเนินการ</div>
+            <div class="value" id="issueCountInProgress">0</div>
+            <div class="note">กำลังตรวจสอบและแก้ไข</div>
+          </div>
+          <div class="issue-summary-card">
+            <div class="label">แก้ไขแล้ว</div>
+            <div class="value" id="issueCountResolved">0</div>
+            <div class="note">รอการยืนยันผู้ใช้</div>
+          </div>
+          <div class="issue-summary-card">
+            <div class="label">ปิดเรื่อง</div>
+            <div class="value" id="issueCountClosed">0</div>
+            <div class="note">ปิดกรณีเรียบร้อย</div>
+          </div>
         </div>
-        <div class="empty" hidden>ยังไม่มีรายงาน</div>
+        <div class="table-container">
+          <table data-no-fixed-cols="0,5">
+            <thead>
+              <tr>
+                <th scope="col">เรื่อง / รายละเอียด</th>
+                <th scope="col">ผู้แจ้ง</th>
+                <th scope="col">ความสำคัญ</th>
+                <th scope="col">สถานะ</th>
+                <th scope="col">อัปเดตล่าสุด</th>
+                <th scope="col">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="empty" hidden>ยังไม่มีคำร้องจากผู้ใช้ในระบบ</div>
+        <div class="issue-actions">
+          <a class="link-button" href="admin-issues.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 12H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 9L12 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>เปิดหน้าจัดการคำร้อง</span>
+          </a>
+        </div>
       </section>
       <section class="admin-card" id="adminStats">
         <h3>
@@ -742,6 +1035,7 @@
       </main>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="admin-dashboard.js"></script>
   <!-- Events modal and UI removed -->
 </body>

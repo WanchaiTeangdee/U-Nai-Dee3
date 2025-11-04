@@ -40,11 +40,17 @@
   document.getElementById('regForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const roleField = document.querySelector('input[name="role"]:checked')
-    const payload = { email: document.getElementById('email').value, password: document.getElementById('password').value, name: document.getElementById('name').value, role: roleField ? roleField.value : 'customer' };
+    const payload = {
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value,
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone') ? document.getElementById('phone').value : null,
+      role: roleField ? roleField.value : 'customer'
+    };
     const res = await fetch(phpApi('register.php'), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
     const json = await res.json();
     if(res.ok){
-      alert('สมัครสมาชิกเรียบร้อย');
+      alert('สมัครสมาชิกเรียบร้อย! คุณสามารถเข้าสู่ระบบได้');
       window.location.href = 'login.html';
     } else { alert(json.error || 'Register failed') }
   })

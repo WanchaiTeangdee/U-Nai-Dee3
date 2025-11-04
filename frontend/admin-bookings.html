@@ -396,8 +396,8 @@
   <div class="admin-layout">
     <header class="admin-header">
       <div>
-        <div class="admin-title">จัดการการจอง</div>
-        <div class="admin-brand-note">จัดการคำขอจองและประวัติการเช่า</div>
+  <div class="admin-title">จัดการการจอง (ปิดใช้งาน)</div>
+  <div class="admin-brand-note">ส่วนการจัดการคำขอจองและประวัติการเช่าถูกปิดใช้งานชั่วคราว</div>
       </div>
       <nav>
         <a href="admin-dashboard.html" class="btn-outline">กลับแดชบอร์ด</a>
@@ -425,38 +425,26 @@
             <span class="nav-emoji">🏠</span>
             Properties
           </a>
-          <a href="admin-bookings.html" class="active">
-            <span class="nav-emoji">📅</span>
-            Bookings
-          </a>
           <a href="admin-users.html">
             <span class="nav-emoji">👥</span>
             Tenants
           </a>
           <a href="admin-issues.html">
-            <span class="nav-emoji">📈</span>
-            Reports
+            <span class="nav-emoji">🛠️</span>
+            รายงานปัญหา
           </a>
         </nav>
       </aside>
 
       <main class="admin-content main-col">
-        <section class="admin-card" id="adminBookings">
+        <section class="admin-card">
           <h3>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 7H20M7 12H17M10 17H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            การจอง &amp; ประวัติการเช่า
+            ส่วนการจองถูกปิดใช้งาน
           </h3>
-          <div class="table-container">
-          <table data-nowrap="true">
-            <thead>
-              <tr><th>ผู้จอง</th><th>ที่พัก</th><th>ช่วงเวลา</th><th>สถานะ</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          </div>
-          <div class="empty" hidden>ยังไม่มีการจอง</div>
+          <p style="margin:0;color:var(--gray-600);font-size:0.95rem;">ระบบปิดการใช้งานการจัดการการจองและประวัติการเช่าชั่วคราว หากต้องการเปิดใช้งานอีกครั้ง โปรดติดต่อผู้พัฒนา.</p>
         </section>
       </main>
     </div>

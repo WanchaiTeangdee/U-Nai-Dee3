@@ -332,6 +332,8 @@ const setupChatFeature = () => {
     return;
   }
 
+  const currentUser = getCurrentUser();
+
   if(!currentUser){
     btn.hidden = false;
     btn.textContent = 'เข้าสู่ระบบเพื่อแชท';

@@ -11,7 +11,7 @@ if(!$auth){
   exit;
 }
 
-$sql = "SELECT l.id, l.title, l.status, l.updated_at, l.contact, COALESCE(u.name, u.email) AS owner_name FROM listings l LEFT JOIN users u ON l.user_id = u.id ORDER BY l.updated_at DESC LIMIT 500";
+$sql = "SELECT l.id, l.title, l.property_type, l.status, l.updated_at, l.contact, COALESCE(u.name, u.email) AS owner_name FROM listings l LEFT JOIN users u ON l.user_id = u.id ORDER BY l.updated_at DESC LIMIT 500";
 $listings = [];
 $result = $mysqli->query($sql);
 if($result){
@@ -19,10 +19,11 @@ if($result){
     $listings[] = [
       'id' => (int)$row['id'],
       'title' => $row['title'],
-  'owner' => $row['owner_name'] ?? '-',
-  'contact' => $row['contact'] ?? '-',
-  'status' => $row['status'] ?? '-',
-  'updated_at' => $row['updated_at'] ?? '-',
+      'property_type' => $row['property_type'] ?? null,
+      'owner' => $row['owner_name'] ?? '-',
+      'contact' => $row['contact'] ?? '-',
+      'status' => $row['status'] ?? '-',
+      'updated_at' => $row['updated_at'] ?? '-',
     ];
   }
 } else {

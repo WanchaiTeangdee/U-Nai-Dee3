@@ -84,11 +84,33 @@ function renderUserStatus(){
     if(chipAvatar){
       const displayName = user.name || user.email || ''
       chipAvatar.textContent = displayName ? displayName.trim().charAt(0).toUpperCase() : 'U'
+      chipAvatar.style.cursor = 'pointer'
+      if(!chipAvatar.dataset.profileNavBound){
+        chipAvatar.dataset.profileNavBound = 'true'
+        chipAvatar.addEventListener('click', () => {
+          window.location.href = 'profile.html'
+        })
+      }
     }
     if(roleLabel){
       const label = ROLE_LABELS[user.role] || user.role || ''
       roleLabel.textContent = label
       roleLabel.style.display = label ? 'inline-flex' : 'none'
+    }
+
+    const chipText = userStatus.querySelector('.chip-text')
+    if(chipText && !chipText.dataset.profileNavBound){
+      chipText.dataset.profileNavBound = 'true'
+      chipText.style.cursor = 'pointer'
+      chipText.addEventListener('click', (event) => {
+        if(event.target && event.target.closest('#logoutBtn')) return
+        const anchor = chipText.querySelector('.user-name')
+        if(anchor){
+          event.preventDefault()
+          const href = anchor.getAttribute('href') || 'profile.html'
+          window.location.href = href
+        }
+      })
     }
   }
   if(loginLink) loginLink.style.display = 'none'
@@ -126,6 +148,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
   renderUserStatus()
   const logoutBtn = document.getElementById('logoutBtn')
   if(logoutBtn) logoutBtn.addEventListener('click', logout)
+  const supportBtn = document.getElementById('supportShortcutBtn')
+  if(supportBtn && !supportBtn.dataset.bound){
+    supportBtn.addEventListener('click', () => {
+      const token = localStorage.getItem('authToken')
+      if(token){
+        window.location.href = 'profile-support.html'
+        return
+      }
+      if(typeof openAuthPanel === 'function'){
+        openAuthPanel('login')
+      }else{
+        window.location.href = 'profile-support.html'
+      }
+    })
+    supportBtn.dataset.bound = 'true'
+  }
   setupChatHandlers()
 })
 
@@ -1003,6 +1041,8 @@ if(panelRegisterForm){
     const email = document.getElementById('regEmailPanel').value
     const name = document.getElementById('regUsernamePanel').value
     const password = document.getElementById('regPasswordPanel').value
+    const phoneInput = document.getElementById('phone')
+    const phone = phoneInput ? phoneInput.value : ''
     const confirm = document.getElementById('regPasswordConfirmPanel').value
     const roleInput = document.querySelector('input[name="regRole"]:checked')
     const role = roleInput ? roleInput.value : 'customer'
@@ -1015,13 +1055,14 @@ if(panelRegisterForm){
     const btn = document.getElementById('panelRegisterBtn')
     btn.disabled = true; btn.textContent = 'กำลังสมัคร...'
     try{
-  const res = await fetch(phpApi('register.php'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, email, password, role }) })
+  const res = await fetch(phpApi('register.php'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, email, password, role, phone }) })
       const j = await res.json()
       if(res.ok){
         localStorage.setItem('user', JSON.stringify(j.user));
         if(j.token){
           localStorage.setItem('authToken', j.token);
         }
+        alert('สมัครสมาชิกสำเร็จ! คุณสามารถเข้าสู่ระบบได้');
         renderUserStatus();
         document.dispatchEvent(new CustomEvent('auth:changed'));
         document.getElementById('authPanel').setAttribute('aria-hidden','true');

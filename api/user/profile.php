@@ -14,7 +14,7 @@ if(!$user){
 $userId = (int)$user['id'];
 $role = strtolower((string)($user['role'] ?? ''));
 
-$userStmt = $mysqli->prepare('SELECT id, email, name, role, created_at FROM users WHERE id = ? LIMIT 1');
+$userStmt = $mysqli->prepare('SELECT id, email, name, role, phone, created_at, last_login, email_verified, email_verified_at FROM users WHERE id = ? LIMIT 1');
 if(!$userStmt){
     http_response_code(500);
     echo json_encode(['error' => 'profile_query_failed']);
@@ -143,14 +143,27 @@ if($role === 'landlord' || $role === 'host' || $role === 'admin'){
     }
 }
 
+$rawLastLogin = $userRow['last_login'] ?? null;
+if($rawLastLogin === '0000-00-00 00:00:00' || $rawLastLogin === '0000-00-00'){
+    $rawLastLogin = null;
+}
+
+$rawVerifiedAt = $userRow['email_verified_at'] ?? null;
+if($rawVerifiedAt === '0000-00-00 00:00:00' || $rawVerifiedAt === '0000-00-00'){
+    $rawVerifiedAt = null;
+}
+
 $response = [
     'user' => [
         'id' => (int)$userRow['id'],
         'email' => $userRow['email'],
         'name' => $userRow['name'],
         'role' => $userRow['role'],
+        'phone' => $userRow['phone'],
         'created_at' => $userRow['created_at'],
-        'last_login' => null
+        'last_login' => $rawLastLogin,
+        'email_verified' => $userRow['email_verified'],
+        'email_verified_at' => $rawVerifiedAt
     ],
     'stats' => $stats
 ];

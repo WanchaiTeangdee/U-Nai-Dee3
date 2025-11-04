@@ -32,10 +32,10 @@ if(time() - ($data['first'] ?? 0) < $window){
 }
 
 $mysqli = db_connect();
-$stmt = $mysqli->prepare('SELECT id, password_hash, name, role FROM users WHERE email = ?');
+$stmt = $mysqli->prepare('SELECT id, password_hash, name, role, phone, last_login, email_verified, email_verified_at FROM users WHERE email = ?');
 $stmt->bind_param('s', $email);
 $stmt->execute();
-$stmt->bind_result($id, $hash, $name, $role);
+$stmt->bind_result($id, $hash, $name, $role, $phone, $lastLogin, $emailVerified, $emailVerifiedAt);
 $found = $stmt->fetch();
 $stmt->close();
 
@@ -49,6 +49,18 @@ if(!$found || !password_verify($password, $hash)){
 // successful login -> reset counter file
 @unlink($fp);
 
+// capture the previous last_login before updating
+$previousLastLogin = $lastLogin ?: null;
+$now = date('Y-m-d H:i:s');
+$updateStmt = $mysqli->prepare('UPDATE users SET last_login = ? WHERE id = ? LIMIT 1');
+if($updateStmt){
+	$updateStmt->bind_param('si', $now, $id);
+	$updateStmt->execute();
+	$updateStmt->close();
+} else {
+	error_log('Failed to prepare last_login update for user ' . $id . ': ' . $mysqli->error);
+}
+
 // create simple token
 $token = bin2hex(random_bytes(24));
 $expires = date('Y-m-d H:i:s', strtotime('+7 days'));
@@ -60,6 +72,19 @@ $stmt->bind_param('iss', $id, $token, $expires);
 $stmt->execute();
 $stmt->close();
 
-echo json_encode(['token'=>$token, 'user'=>['id'=>$id,'email'=>$email,'name'=>$name,'role'=>$role]]);
+echo json_encode([
+	'token' => $token,
+	'user' => [
+		'id' => $id,
+		'email' => $email,
+		'name' => $name,
+		'role' => $role,
+		'phone' => $phone,
+		'email_verified' => (int)($emailVerified ?? 0),
+		'email_verified_at' => $emailVerifiedAt,
+		'last_login' => $now,
+		'last_login_previous' => $previousLastLogin
+	]
+]);
 
 ?>

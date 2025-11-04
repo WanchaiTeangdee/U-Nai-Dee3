@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>จัดการรายงาน - U-Nai Dee</title>
+  <title>ระบบแจ้งปัญหา/สอบถาม - U-Nai Dee</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
     :root {
@@ -390,78 +390,656 @@
     }
 
     .admin-card:nth-child(1) { animation-delay: 0.1s; }
+
+    /* --- New issues management layout overrides --- */
+    body.new-issues-layout {
+      background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 100%);
+      color: var(--gray-800);
+    }
+
+    .issues-shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 48px 22px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .issues-header {
+      background: rgba(255, 255, 255, 0.94);
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 24px 46px rgba(37, 99, 235, 0.18);
+      padding: 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .issues-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .issues-title {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      background: linear-gradient(120deg, #2563eb, #0ea5e9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .issues-desc {
+      margin: 0;
+      font-size: 15px;
+      color: #4b5563;
+    }
+
+    .issues-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .issues-actions .btn-outline {
+      padding: 11px 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(37, 99, 235, 0.45);
+      color: #2563eb;
+      background: #fff;
+      font-weight: 600;
+      box-shadow: 0 16px 32px rgba(37, 99, 235, 0.12);
+    }
+
+    .issues-actions .btn-outline:hover {
+      background: rgba(37, 99, 235, 0.1);
+    }
+
+    .issues-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 26px;
+      align-items: flex-start;
+    }
+
+    .issues-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .issues-sidebar .admin-card {
+      padding: 24px;
+      border-radius: 20px;
+    }
+
+    .issues-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(140deg, rgba(255, 255, 255, 0.92) 0%, rgba(231, 245, 255, 0.96) 100%);
+      border: 1px solid rgba(37, 99, 235, 0.12);
+    }
+
+    .issues-profile .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: 0 18px 36px rgba(37, 99, 235, 0.25);
+    }
+
+    .issues-profile .profile-meta {
+      gap: 4px;
+    }
+
+    .issues-profile .profile-meta .name {
+      font-size: 16px;
+      color: #1e293b;
+    }
+
+    .issues-profile .profile-meta .role {
+      font-size: 13px;
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    .issues-nav {
+      padding: 22px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .issues-nav h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #4b5563;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .issues-nav .nav-list {
+      gap: 10px;
+    }
+
+    .issues-nav .nav-list a {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      color: #475569;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .issues-nav .nav-list a:hover {
+      transform: translateX(2px);
+      background: rgba(37, 99, 235, 0.12);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+    }
+
+    .issues-nav .nav-list a.is-active {
+      background: linear-gradient(120deg, rgba(37, 99, 235, 0.16) 0%, rgba(14, 165, 233, 0.16) 100%);
+      border-color: rgba(37, 99, 235, 0.28);
+      color: #1d4ed8;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.16);
+    }
+
+    .issues-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 18px;
+    }
+
+    .issues-summary-tile {
+      padding: 20px;
+      border-radius: 18px;
+      background: linear-gradient(160deg, rgba(37, 99, 235, 0.1) 0%, rgba(14, 165, 233, 0.08) 100%);
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .issues-summary-tile .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    .issues-summary-tile .value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1d4ed8;
+    }
+
+    .issues-wrapper {
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 32px 64px rgba(15, 23, 42, 0.24);
+      padding: 28px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .issues-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.06) 0%, rgba(255, 255, 255, 0.0) 38%);
+      pointer-events: none;
+    }
+
+    .issues-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .issues-toolbar .title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .issues-filters {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .issues-filter-select {
+      appearance: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: #fff;
+      color: #475569;
+      font-weight: 500;
+      min-width: 160px;
+    }
+
+    .issues-table-holder {
+      position: relative;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      overflow: hidden;
+      background: rgba(248, 250, 255, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 1;
+    }
+
+    table.issues-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    table.issues-table thead {
+      background: linear-gradient(120deg, rgba(37, 99, 235, 0.12) 0%, rgba(14, 165, 233, 0.12) 100%);
+      color: #475569;
+    }
+
+    table.issues-table th,
+    table.issues-table td {
+      padding: 16px 18px;
+      text-align: left;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      vertical-align: top;
+    }
+
+    table.issues-table tbody tr {
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    table.issues-table tbody tr:hover {
+      background: rgba(37, 99, 235, 0.06);
+      transform: translateY(-2px);
+    }
+
+    table.issues-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .issues-status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .issues-status-pill[data-status="new"] { background: rgba(37, 99, 235, 0.16); color: #1d4ed8; }
+    .issues-status-pill[data-status="in_progress"] { background: rgba(245, 158, 11, 0.18); color: #b45309; }
+    .issues-status-pill[data-status="resolved"] { background: rgba(16, 185, 129, 0.16); color: #047857; }
+    .issues-status-pill[data-status="closed"] { background: rgba(148, 163, 184, 0.22); color: #475569; }
+
+    .issues-priority-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(248, 250, 255, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      color: #4b5563;
+    }
+
+    .issues-priority-tag[data-priority="high"],
+    .issues-priority-tag[data-priority="urgent"] {
+      background: rgba(248, 113, 113, 0.18);
+      color: #b91c1c;
+      border-color: rgba(248, 113, 113, 0.32);
+    }
+
+    .issues-action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .issues-action-btn {
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      background: #fff;
+      color: #2563eb;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .issues-action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.16);
+    }
+
+    .issues-empty {
+      padding: 46px;
+      text-align: center;
+      color: #64748b;
+      font-size: 15px;
+    }
+
+    .issues-drawer {
+      margin-top: 26px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 26px 52px rgba(15, 23, 42, 0.18);
+      padding: 26px 28px;
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .issues-drawer[data-open="true"] {
+      display: flex;
+    }
+
+    .issues-drawer-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .issues-drawer-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .issues-drawer-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .issues-drawer-label {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .issues-drawer-message {
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(248, 250, 255, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #475569;
+      white-space: pre-wrap;
+    }
+
+    .issues-replies {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .issues-reply-card {
+      border-radius: 16px;
+      border: 1px solid rgba(37, 99, 235, 0.08);
+      padding: 16px 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.98) 100%);
+    }
+
+    .issues-reply-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+
+    .issues-reply-text {
+      margin: 0;
+      font-size: 14px;
+      color: #475569;
+      white-space: pre-wrap;
+    }
+
+    .issues-reply-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .issues-reply-form textarea {
+      width: 100%;
+      min-height: 110px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 14px 16px;
+      font-family: inherit;
+      font-size: 14px;
+      background: rgba(248, 250, 255, 0.9);
+      resize: vertical;
+    }
+
+    .issues-drawer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .issues-status-select {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: #fff;
+      min-width: 200px;
+      font-size: 14px;
+    }
+
+    .issues-form-status {
+      font-size: 13px;
+      color: #64748b;
+      min-height: 20px;
+    }
+
+    .issues-close-btn {
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: #fff;
+      color: #475569;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1080px) {
+      .issues-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .issues-sidebar {
+        order: 2;
+      }
+
+      .issues-wrapper {
+        order: 1;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .issues-shell {
+        padding: 32px 16px 60px;
+      }
+
+      .issues-header {
+        padding: 26px 24px;
+      }
+
+      .issues-wrapper {
+        padding: 24px;
+      }
+
+      table.issues-table th,
+      table.issues-table td {
+        padding: 12px 14px;
+      }
+
+      .issues-table-holder {
+        overflow-x: auto;
+      }
+
+      .issues-drawer {
+        padding: 22px 20px;
+      }
+    }
   </style>
 </head>
-<body>
-  <div class="admin-layout">
-    <header class="admin-header">
-      <div>
-        <div class="admin-title">จัดการรายงาน</div>
-        <div class="admin-brand-note">จัดการปัญหา รีวิว และการร้องเรียน</div>
-      </div>
-      <nav>
-        <a href="admin-dashboard.html" class="btn-outline">กลับแดชบอร์ด</a>
-      </nav>
-    </header>
-    <div class="dashboard-grid">
-      <aside class="sidebar-left">
-        <div class="profile-card">
-          <div class="avatar">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="profile-meta">
-            <div class="name">ผู้ดูแลระบบ</div>
-            <div class="role">Admin • U-Nai Dee</div>
-          </div>
+<body class="new-issues-layout">
+  <div class="issues-shell">
+    <header class="issues-header">
+      <div class="issues-header-top">
+        <div>
+          <h1 class="issues-title">ระบบแจ้งปัญหา / สอบถาม</h1>
+          <p class="issues-desc">ติดตาม ดูรายละเอียด และตอบกลับการแจ้งจากผู้ใช้งานในที่เดียว</p>
         </div>
-        <nav class="nav-list">
-          <a href="admin-dashboard.html">
-            <span class="nav-emoji">📊</span>
-            Overview
-          </a>
-          <a href="admin-listings.html">
-            <span class="nav-emoji">🏠</span>
-            Properties
-          </a>
-          <a href="admin-bookings.html">
-            <span class="nav-emoji">📅</span>
-            Bookings
-          </a>
-          <a href="admin-users.html">
-            <span class="nav-emoji">👥</span>
-            Tenants
-          </a>
-          <a href="admin-issues.html" class="active">
-            <span class="nav-emoji">📈</span>
-            Reports
-          </a>
-        </nav>
+        <div class="issues-actions">
+          <a class="btn-outline" href="admin-dashboard.html">ย้อนกลับแดชบอร์ด</a>
+          <button class="btn-outline" id="refreshIssuesBtn" type="button">รีเฟรชข้อมูล</button>
+        </div>
+      </div>
+      <div class="issues-summary-grid" id="issuesSummary"></div>
+    </header>
+
+    <div class="issues-layout">
+      <aside class="issues-sidebar">
+        <section class="admin-card issues-profile">
+          <div class="avatar" id="issuesAdminAvatar">A</div>
+          <div class="profile-meta">
+            <span class="name">ผู้ดูแลระบบ</span>
+            <span class="role">Admin • U-Nai Dee</span>
+          </div>
+        </section>
+        <section class="admin-card issues-nav">
+          <h3>เมนูจัดการ</h3>
+          <nav class="nav-list">
+            <a class="nav-link" href="admin-dashboard.html">แดชบอร์ดรวม</a>
+            <a class="nav-link" href="admin-users.html">ผู้ใช้งาน</a>
+            <a class="nav-link" href="admin-listings.html">ประกาศทั้งหมด</a>
+            <a class="nav-link is-active" href="admin-issues.html">แจ้งปัญหา</a>
+          </nav>
+        </section>
+        <section class="admin-card">
+          <h3 style="margin:0 0 14px;font-size:16px;color:#475569;">คำแนะนำ</h3>
+          <p style="margin:0;color:#64748b;font-size:14px;">เปิดรายละเอียดเพื่อดูข้อความเต็ม เปลี่ยนสถานะ และตอบกลับผู้ใช้งานได้ทันที</p>
+        </section>
       </aside>
 
-      <main class="admin-content main-col">
-        <section class="admin-card" id="adminIssues">
-          <h3>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 9V11M12 15H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            รายงานปัญหา / รีวิว / การร้องเรียน
-          </h3>
-          <div class="table-container">
-          <table>
-            <thead>
-              <tr><th>ประเภท</th><th>ผู้รายงาน</th><th>หัวข้อ</th><th>สถานะ</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+      <main class="issues-wrapper">
+        <div class="issues-toolbar">
+          <h2 class="title">รายการการแจ้งปัญหาทั้งหมด</h2>
+          <div class="issues-filters">
+            <select class="issues-filter-select" id="statusFilter">
+              <option value="">สถานะทั้งหมด</option>
+              <option value="new">ใหม่</option>
+              <option value="in_progress">กำลังดำเนินการ</option>
+              <option value="resolved">แก้ไขแล้ว</option>
+              <option value="closed">ปิดแล้ว</option>
+            </select>
+            <select class="issues-filter-select" id="priorityFilter">
+              <option value="">ความสำคัญทั้งหมด</option>
+              <option value="low">ต่ำ</option>
+              <option value="normal">ปกติ</option>
+              <option value="high">สูง</option>
+              <option value="urgent">ด่วน</option>
+            </select>
           </div>
-          <div class="empty" hidden>ยังไม่มีรายงาน</div>
-        </section>
+        </div>
+
+        <div class="issues-table-holder">
+          <table class="issues-table" id="issuesTable">
+            <thead>
+              <tr>
+                <th>หัวข้อ</th>
+                <th>ผู้แจ้ง</th>
+                <th>หมวดหมู่</th>
+                <th>ความสำคัญ</th>
+                <th>สถานะ</th>
+                <th>อัปเดตล่าสุด</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="issues-empty-row">
+                <td colspan="7" class="issues-empty">กำลังโหลดข้อมูล...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="issues-drawer" id="issueDrawer" data-open="false">
+          <div class="issues-drawer-header">
+            <h3 class="issues-drawer-title" id="drawerTitle">รายละเอียดการแจ้ง</h3>
+            <button class="issues-close-btn" type="button" id="closeDrawerBtn">ปิด</button>
+          </div>
+          <div class="issues-drawer-meta" id="drawerMeta"></div>
+          <div class="issues-drawer-message" id="drawerMessage"></div>
+          <section>
+            <h4 style="margin:0 0 12px;font-size:16px;color:#475569;">ประวัติการตอบกลับ</h4>
+            <div class="issues-replies" id="drawerReplies"></div>
+          </section>
+          <form class="issues-reply-form" id="replyForm">
+            <textarea id="replyMessage" placeholder="พิมพ์ข้อความตอบกลับถึงผู้แจ้ง..." required></textarea>
+            <div class="issues-drawer-actions">
+              <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                <label style="font-weight:600;color:#475569;">เปลี่ยนสถานะ:</label>
+                <select class="issues-status-select" id="drawerStatus">
+                  <option value="new">ใหม่</option>
+                  <option value="in_progress">กำลังดำเนินการ</option>
+                  <option value="resolved">แก้ไขแล้ว</option>
+                  <option value="closed">ปิดแล้ว</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                <button class="btn-primary" type="submit" id="replySubmitBtn">ส่งตอบกลับ</button>
+                <div class="issues-form-status" id="drawerStatusMsg"></div>
+              </div>
+            </div>
+          </form>
+        </div>
       </main>
     </div>
   </div>
-  <script src="admin-dashboard.js"></script>
+  <script src="admin-issues.js"></script>
 </body>
 </html>
 

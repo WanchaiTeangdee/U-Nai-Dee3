@@ -1,12 +1,31 @@
 'use strict';
 
 const ROLE_LABELS = { customer: 'ลูกค้า', landlord: 'ผู้ปล่อยเช่า', admin: 'แอดมิน' }
+const ROLE_COLORS = {
+  admin: '#f59e0b',
+  landlord: '#10b981',
+  customer: '#6366f1'
+}
 const STATUS_LABELS = { pending: 'รอตรวจสอบ', active: 'เผยแพร่', inactive: 'ปิดประกาศ' }
 const STATUS_OPTIONS = [
   { value: 'pending', label: STATUS_LABELS.pending },
   { value: 'active', label: STATUS_LABELS.active },
   { value: 'inactive', label: STATUS_LABELS.inactive }
 ]
+
+const ISSUE_STATUS_LABELS = {
+  new: 'ใหม่',
+  in_progress: 'กำลังดำเนินการ',
+  resolved: 'แก้ไขแล้ว',
+  closed: 'ปิดเรื่อง'
+}
+
+const ISSUE_PRIORITY_LABELS = {
+  low: 'ต่ำ',
+  normal: 'ปกติ',
+  high: 'สูง',
+  urgent: 'เร่งด่วน'
+}
 
 function ensureSupportedStatusValue(selectElement){
   if(!STATUS_OPTIONS.some((opt) => opt.value === selectElement.value)){
@@ -67,6 +86,37 @@ const confirmModalEl = document.getElementById('confirmDeleteModal')
 const confirmDeleteBtn = document.getElementById('confirmDeleteBtn')
 const confirmErrorEl = document.getElementById('confirmError')
 const confirmMessageEl = document.getElementById('confirmMessage')
+const roleChartEmptyEl = document.getElementById('roleChartEmpty')
+const roleChartDetailsEl = document.getElementById('roleChartDetails')
+const roleDetailCountEls = {
+  admin: document.getElementById('roleCount-admin'),
+  landlord: document.getElementById('roleCount-landlord'),
+  customer: document.getElementById('roleCount-customer')
+}
+const roleDetailPercentEls = {
+  admin: document.getElementById('rolePercent-admin'),
+  landlord: document.getElementById('rolePercent-landlord'),
+  customer: document.getElementById('rolePercent-customer')
+}
+let roleDistributionChart = null
+const listingsChartEmptyEl = document.getElementById('listingsChartEmpty')
+const listingsChartDetailsEl = document.getElementById('listingsChartDetails')
+const listingsChartNoteEl = document.getElementById('listingsChartNote')
+const listingsTotalCountEl = document.getElementById('listingsTotalCount')
+const listingsDetailCountEls = {
+  condo: document.getElementById('listingsCount-condo'),
+  house: document.getElementById('listingsCount-house')
+}
+let listingsTypeChart = null
+
+const issueSummaryEl = document.getElementById('issueSummary')
+const issueCountEls = {
+  total: document.getElementById('issueCountTotal'),
+  new: document.getElementById('issueCountNew'),
+  in_progress: document.getElementById('issueCountInProgress'),
+  resolved: document.getElementById('issueCountResolved'),
+  closed: document.getElementById('issueCountClosed')
+}
 
 let usersCache = []
 let userFormMode = 'create'
@@ -253,6 +303,371 @@ function adjustTableColumns(section){
   table.insertBefore(colgroup, table.firstChild)
 }
 
+function updateRoleChart(users){
+  const canvas = document.getElementById('roleDistributionChart')
+  if(!canvas || typeof Chart === 'undefined') return
+  const roles = ['admin', 'landlord', 'customer']
+  const counts = roles.reduce((acc, role) => {
+    acc[role] = 0
+    return acc
+  }, {})
+
+  if(Array.isArray(users)){
+    users.forEach(user => {
+      const keyRaw = typeof user.role === 'string' ? user.role.trim().toLowerCase() : ''
+      if(ROLE_LABELS[keyRaw]){
+        counts[keyRaw] = (counts[keyRaw] || 0) + 1
+      }
+    })
+  }
+
+  const dataPoints = roles
+    .map(role => [role, counts[role] || 0])
+    .filter(([, total]) => total > 0)
+
+  const hasData = dataPoints.length > 0
+  if(roleChartEmptyEl){
+    roleChartEmptyEl.hidden = hasData
+  }
+  updateRoleDetails(counts)
+  if(!hasData){
+    if(roleDistributionChart){
+      roleDistributionChart.destroy()
+      roleDistributionChart = null
+    }
+    return
+  }
+
+  const labels = dataPoints.map(([role]) => ROLE_LABELS[role] || role)
+  const values = dataPoints.map(([, total]) => total)
+  const colors = dataPoints.map(([role]) => ROLE_COLORS[role] || '#cbd5f5')
+  const ctx = canvas.getContext('2d')
+  if(!ctx) return
+
+  if(roleDistributionChart){
+    roleDistributionChart.data.labels = labels
+    roleDistributionChart.data.datasets[0].data = values
+    roleDistributionChart.data.datasets[0].backgroundColor = colors
+    roleDistributionChart.update()
+    return
+  }
+
+  roleDistributionChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: colors,
+          borderWidth: 1,
+          borderColor: 'rgba(255, 255, 255, 0.85)'
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            boxWidth: 8,
+            padding: 16
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label(context){
+              const label = context.label || ''
+              const value = context.parsed || 0
+              return `${label}: ${value.toLocaleString('th-TH')}`
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+function updateRoleDetails(counts){
+  if(!roleChartDetailsEl) return
+  const roles = ['admin', 'landlord', 'customer']
+  const total = roles.reduce((sum, role) => sum + (counts?.[role] || 0), 0)
+  const hasData = total > 0
+  roleChartDetailsEl.hidden = !hasData
+  if(!hasData){
+    roles.forEach(role => {
+      const card = roleChartDetailsEl.querySelector(`[data-role="${role}"]`)
+      if(card) card.hidden = true
+    })
+    return
+  }
+
+  roles.forEach(role => {
+    const count = counts?.[role] || 0
+    const percent = total === 0 ? 0 : (count / total) * 100
+    const card = roleChartDetailsEl.querySelector(`[data-role="${role}"]`)
+    if(card) card.hidden = count === 0
+    const countEl = roleDetailCountEls[role]
+    if(countEl) countEl.textContent = count.toLocaleString('th-TH')
+    const percentEl = roleDetailPercentEls[role]
+    if(percentEl) percentEl.textContent = percent > 0 ? `${percent.toFixed(1)}%` : '0%'
+  })
+}
+
+function updateListingsTypeChart(listings){
+  const canvas = document.getElementById('listingsTypeChart')
+  if(!canvas || typeof Chart === 'undefined') return
+  const counts = { condo: 0, house: 0 }
+  if(Array.isArray(listings)){
+    listings.forEach(listing => {
+      const type = typeof listing.property_type === 'string' ? listing.property_type.toLowerCase() : ''
+      if(type === 'condo') counts.condo += 1
+      else if(type === 'house') counts.house += 1
+    })
+  }
+  const values = [counts.condo, counts.house]
+  const hasData = values.some(val => val > 0)
+  updateListingsDetails(counts)
+  if(listingsChartEmptyEl){
+    listingsChartEmptyEl.hidden = hasData
+  }
+  if(!hasData){
+    if(listingsTypeChart){
+      listingsTypeChart.destroy()
+      listingsTypeChart = null
+    }
+    return
+  }
+
+  const labels = ['คอนโด', 'บ้านเช่า']
+  const colors = ['#6366f1', '#10b981']
+  const ctx = canvas.getContext('2d')
+  if(!ctx) return
+
+  if(listingsTypeChart){
+    listingsTypeChart.data.labels = labels
+    listingsTypeChart.data.datasets[0].data = values
+    listingsTypeChart.update()
+    return
+  }
+
+  listingsTypeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'จำนวนที่พัก',
+          data: values,
+          backgroundColor: colors,
+          borderRadius: 8,
+          maxBarThickness: 48
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0,
+            callback(value){
+              try{ return Number(value).toLocaleString('th-TH') }catch(_){ return value }
+            }
+          },
+          grid: {
+            color: 'rgba(99, 102, 241, 0.08)'
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label(context){
+              const value = context.parsed.y || 0
+              return `จำนวน ${value.toLocaleString('th-TH')} รายการ`
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+function updateListingsDetails(counts){
+  if(!listingsChartDetailsEl) return
+  const condo = counts?.condo || 0
+  const house = counts?.house || 0
+  const total = condo + house
+  const hasData = total > 0
+  listingsChartDetailsEl.hidden = !hasData
+  if(!hasData){
+    if(listingsChartNoteEl) listingsChartNoteEl.hidden = true
+    return
+  }
+
+  const mapping = [
+    ['condo', condo],
+    ['house', house]
+  ]
+
+  mapping.forEach(([type, value]) => {
+    const countEl = listingsDetailCountEls[type]
+    if(countEl) countEl.textContent = value.toLocaleString('th-TH')
+  })
+
+  if(listingsTotalCountEl) listingsTotalCountEl.textContent = total.toLocaleString('th-TH')
+  if(listingsChartNoteEl) listingsChartNoteEl.hidden = false
+}
+
+function normalizeIssueStatus(status){
+  const raw = String(status ?? '').trim().toLowerCase()
+  if(raw === 'in progress' || raw === 'in-progress' || raw === 'progress') return 'in_progress'
+  if(raw === 'resolved') return 'resolved'
+  if(raw === 'closed') return 'closed'
+  if(raw === 'new' || raw === '') return 'new'
+  if(raw === 'in_progress') return 'in_progress'
+  return raw || 'new'
+}
+
+function normalizeIssuePriority(priority){
+  const raw = String(priority ?? '').trim().toLowerCase()
+  if(raw === 'low') return 'low'
+  if(raw === 'high') return 'high'
+  if(raw === 'urgent' || raw === 'critical') return 'urgent'
+  return 'normal'
+}
+
+function formatIssueDate(value){
+  if(!value) return '-'
+  try{
+    const date = new Date(value)
+    if(Number.isNaN(date.getTime())) return '-'
+    return date.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })
+  }catch(err){
+    return '-'
+  }
+}
+
+function createIssueSubjectCell(issue){
+  const td = document.createElement('td')
+  const subject = document.createElement('div')
+  subject.className = 'issue-subject'
+  const category = typeof issue?.category === 'string' && issue.category.trim() ? `[${issue.category.trim()}] ` : ''
+  subject.textContent = `${category}${issue?.subject || '-'}`
+  td.appendChild(subject)
+  if(issue?.message_preview){
+    const preview = document.createElement('div')
+    preview.className = 'issue-preview'
+    preview.textContent = issue.message_preview
+    td.appendChild(preview)
+  }
+  return td
+}
+
+function createIssueReporterCell(issue){
+  const td = document.createElement('td')
+  const wrapper = document.createElement('div')
+  wrapper.className = 'issue-reporter'
+
+  const name = document.createElement('span')
+  name.className = 'name'
+  name.textContent = issue?.reporter || '-'
+  wrapper.appendChild(name)
+
+  if(issue?.reporter_email){
+    const email = document.createElement('span')
+    email.className = 'email'
+    email.textContent = issue.reporter_email
+    wrapper.appendChild(email)
+  }
+
+  if(issue?.reporter_role){
+    const role = document.createElement('span')
+    role.className = 'role'
+    role.textContent = issue.reporter_role
+    wrapper.appendChild(role)
+  }
+
+  td.appendChild(wrapper)
+  return td
+}
+
+function createIssuePriorityCell(issue){
+  const td = document.createElement('td')
+  const key = normalizeIssuePriority(issue?.priority)
+  const pill = document.createElement('span')
+  pill.className = `issue-priority-pill issue-priority--${key}`
+  pill.textContent = ISSUE_PRIORITY_LABELS[key] || (issue?.priority || '-')
+  td.appendChild(pill)
+  return td
+}
+
+function createIssueStatusCell(issue){
+  const td = document.createElement('td')
+  const key = normalizeIssueStatus(issue?.status)
+  const pill = document.createElement('span')
+  pill.className = `issue-status-pill issue-status--${key}`
+  pill.textContent = ISSUE_STATUS_LABELS[key] || (issue?.status || '-')
+  td.appendChild(pill)
+  return td
+}
+
+function createIssueDateCell(issue){
+  const td = document.createElement('td')
+  const dateValue = issue?.last_activity_at || issue?.updated_at || issue?.created_at || null
+  td.textContent = formatIssueDate(dateValue)
+  return td
+}
+
+function createIssueActionCell(issue){
+  const td = document.createElement('td')
+  const actions = document.createElement('div')
+  actions.className = 'issue-actions'
+  const link = document.createElement('a')
+  link.className = 'link-button'
+  const id = typeof issue?.id === 'number' || typeof issue?.id === 'string' ? String(issue.id) : ''
+  link.href = id ? `admin-issues.html?issue=${encodeURIComponent(id)}` : 'admin-issues.html'
+  link.textContent = 'เปิดรายละเอียด'
+  actions.appendChild(link)
+  td.appendChild(actions)
+  return td
+}
+
+function updateIssueSummary(counts, issueCount = 0){
+  if(!issueSummaryEl) return
+  const total = Number(counts?.total ?? issueCount ?? 0) || 0
+  const byStatus = counts?.by_status || {}
+
+  const setValue = (key, value) => {
+    const target = issueCountEls[key]
+    if(target){
+      const num = Number(value || 0)
+      target.textContent = Number.isFinite(num) ? num.toLocaleString('th-TH') : '0'
+    }
+  }
+
+  setValue('total', total)
+  setValue('new', byStatus?.new ?? 0)
+  setValue('in_progress', byStatus?.in_progress ?? byStatus?.['in-progress'] ?? 0)
+  setValue('resolved', byStatus?.resolved ?? 0)
+  setValue('closed', byStatus?.closed ?? 0)
+
+  issueSummaryEl.hidden = total === 0 && issueCount === 0
+}
+
 function textCell(text){
   const td = document.createElement('td')
   td.textContent = text
@@ -368,6 +783,7 @@ async function loadUsers(){
   if(totalUsersEl) totalUsersEl.textContent = data?.counts?.total_users ?? (data?.users?.length ?? 0)
   const newUsersEl = document.getElementById('statNewUsers')
   if(newUsersEl) newUsersEl.textContent = data?.counts?.new_users_today ?? 0
+  updateRoleChart(usersCache)
 }
 
 function toggleModal(modalEl, isOpen){
@@ -586,7 +1002,8 @@ attachUserManagementHandlers()
 
 async function loadListings(){
   const data = await fetchJson(phpApi('admin/listings.php'), { headers: DEFAULT_HEADERS })
-  renderTable('adminListings', data?.listings || [], (tr, listing)=>{
+  const listings = Array.isArray(data?.listings) ? data.listings : []
+  renderTable('adminListings', listings, (tr, listing)=>{
     tr.appendChild(textCell(listing.title || '-'))
     tr.appendChild(textCell(listing.owner || '-'))
     const statusTd = document.createElement('td')
@@ -598,27 +1015,38 @@ async function loadListings(){
     tr.appendChild(actionTd)
     tr.appendChild(updatedTd)
   })
+  updateListingsTypeChart(listings)
 }
 
 async function loadBookings(){
-  const data = await fetchJson(phpApi('admin/bookings.php'), { headers: DEFAULT_HEADERS })
-  renderTable('adminBookings', data?.bookings || [], (tr, booking)=>{
-    tr.appendChild(textCell(booking.tenant || '-'))
-    tr.appendChild(textCell(booking.listing || '-'))
-    tr.appendChild(textCell(booking.period || '-'))
-    tr.appendChild(textCell(booking.status || '-'))
-  })
+  const bookingsSection = document.getElementById('adminBookings')
   const newBookingsEl = document.getElementById('statNewBookings')
+  if(!bookingsSection && !newBookingsEl) return
+  const data = await fetchJson(phpApi('admin/bookings.php'), { headers: DEFAULT_HEADERS })
+  if(bookingsSection){
+    renderTable('adminBookings', data?.bookings || [], (tr, booking)=>{
+      tr.appendChild(textCell(booking.tenant || '-'))
+      tr.appendChild(textCell(booking.listing || '-'))
+      tr.appendChild(textCell(booking.period || '-'))
+      tr.appendChild(textCell(booking.status || '-'))
+    })
+  }
   if(newBookingsEl) newBookingsEl.textContent = data?.counts?.new_bookings_today ?? 0
 }
 
 async function loadIssues(){
+  const section = document.getElementById('adminIssues')
+  if(!section) return
   const data = await fetchJson(phpApi('admin/issues.php'), { headers: DEFAULT_HEADERS })
-  renderTable('adminIssues', data?.issues || [], (tr, issue)=>{
-    tr.appendChild(textCell(issue.type || '-'))
-    tr.appendChild(textCell(issue.reporter || '-'))
-    tr.appendChild(textCell(issue.title || '-'))
-    tr.appendChild(textCell(issue.status || '-'))
+  const issues = Array.isArray(data?.issues) ? data.issues : []
+  updateIssueSummary(data?.counts, issues.length)
+  renderTable('adminIssues', issues, (tr, issue)=>{
+    tr.appendChild(createIssueSubjectCell(issue))
+    tr.appendChild(createIssueReporterCell(issue))
+    tr.appendChild(createIssuePriorityCell(issue))
+    tr.appendChild(createIssueStatusCell(issue))
+    tr.appendChild(createIssueDateCell(issue))
+    tr.appendChild(createIssueActionCell(issue))
   })
 }
 

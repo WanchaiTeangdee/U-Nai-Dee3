@@ -21,33 +21,6 @@
     admin: 'แอดมิน'
   }
 
-  const ACCOUNT_STATUS_CONTENT = {
-    verified: {
-      badge: 'ยืนยันแล้ว',
-      message: 'บัญชีของคุณพร้อมใช้งาน',
-      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`
-    },
-    pending: {
-      badge: 'รอการยืนยัน',
-      message: 'กรุณายืนยันอีเมลเพื่อความปลอดภัยของบัญชี',
-      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 8V12L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`
-    },
-    suspended: {
-      badge: 'ถูกระงับ',
-      message: 'โปรดติดต่อผู้ดูแลเพื่อปลดล็อกบัญชีของคุณ',
-      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 9V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`
-    }
-  }
-
   const ensureApi = () => {
     if(typeof phpApi === 'function'){
       return phpApi
@@ -65,43 +38,6 @@
   }
 
   const api = ensureApi()
-  const profileWrapper = document.querySelector('.profile-wrapper')
-  const profilePanel = document.querySelector('.profile-panel')
-  const authGate = document.getElementById('profileAuthGate')
-
-  let authPromptMode = null
-
-  const ensureAuthPanel = (mode = 'login') => {
-    if(typeof openAuthPanel !== 'function') return
-    const desired = mode === 'register' ? 'register' : 'login'
-    requestAnimationFrame(() => openAuthPanel(desired))
-  }
-
-  const showAuthRequired = (mode = 'login') => {
-    const desired = mode === 'register' ? 'register' : 'login'
-    if(profilePanel) profilePanel.hidden = true
-    if(authGate) authGate.hidden = false
-    if(profileWrapper) profileWrapper.classList.add('auth-required')
-    if(authPromptMode !== desired) {
-      authPromptMode = desired
-      ensureAuthPanel(desired)
-    }
-  }
-
-  const hideAuthRequired = () => {
-    authPromptMode = null
-    if(profilePanel) profilePanel.hidden = false
-    if(authGate) authGate.hidden = true
-    if(profileWrapper) profileWrapper.classList.remove('auth-required')
-  }
-
-  const redirectToHome = () => {
-    showAuthRequired('login')
-  }
-
-  const avatarEl = document.getElementById('profileAvatar')
-  const avatarUploadBtn = document.getElementById('avatarUploadBtn')
-  const avatarUploadInput = document.getElementById('avatarUploadInput')
 
   const nameEl = document.getElementById('profileName')
   const emailEl = document.getElementById('profileEmail')
@@ -110,20 +46,30 @@
   const createdEl = document.getElementById('profileCreated')
   const lastLoginWrapper = document.getElementById('profileLastLoginWrapper')
   const lastLoginEl = document.getElementById('profileLastLogin')
-  const summaryEl = document.getElementById('profileSummary')
-  const extrasContainer = document.getElementById('profileExtras')
-
-  // Account status indicator elements
-  const accountStatusIndicator = document.querySelector('.account-status-indicator')
-  const statusBadge = document.getElementById('accountStatusBadge')
-  const statusMessage = document.getElementById('accountStatusMessage')
-  const statusIconWrapper = document.querySelector('.account-status-indicator .status-icon')
-
-  // Display elements in hero section
   const displayNameEl = document.getElementById('profileDisplayName')
-  const displayEmailEl = document.getElementById('profileDisplayEmail')
   const displayRoleEl = document.getElementById('profileDisplayRole')
+  const displayEmailEl = document.getElementById('profileDisplayEmail')
   const displayCreatedEl = document.getElementById('profileDisplayCreated')
+  const displayPhoneEl = document.getElementById('profileDisplayPhone')
+  const avatarEl = document.getElementById('profileAvatar')
+  const detailNameEl = document.getElementById('detailName')
+  const detailEmailEl = document.getElementById('detailEmail')
+  const detailPhoneEl = document.getElementById('detailPhone')
+  const detailRoleEl = document.getElementById('detailRole')
+  const detailCreatedEl = document.getElementById('detailCreated')
+  const detailLastLoginEl = document.getElementById('detailLastLogin')
+  const detailEmailStatusEl = document.getElementById('detailEmailStatus')
+  const detailEmailStatusLabelEl = document.getElementById('detailEmailStatusLabel')
+  const detailEmailVerifyBtn = document.getElementById('detailEmailVerifyBtn')
+  const emailStatusMessageEl = document.getElementById('emailStatusMessage')
+  const detailListingsEl = document.getElementById('detailListings')
+  const detailBookingsEl = document.getElementById('detailBookings')
+  const detailConversationsEl = document.getElementById('detailConversations')
+  const detailUnreadEl = document.getElementById('detailUnread')
+  const extrasContainer = document.getElementById('profileExtras')
+  const bookingOverviewList = document.getElementById('overviewBookingList')
+  const bookingOverviewEmpty = document.getElementById('overviewBookingEmpty')
+  const bookingOverviewTotal = document.getElementById('overviewBookingTotal')
 
   const editForm = document.getElementById('profileEditForm')
   const editNameInput = document.getElementById('profileEditName')
@@ -142,23 +88,9 @@
     user: null,
     stats: null,
     isEditing: false,
-    submitting: false
-  }
-
-  const getAuthToken = () => {
-    const storedToken = localStorage.getItem('authToken')
-    if(storedToken) return storedToken
-    const userStr = localStorage.getItem('user')
-    if(!userStr) return null
-    try{
-      const user = JSON.parse(userStr)
-      if(user && typeof user.token === 'string' && user.token){
-        return user.token
-      }
-    }catch(err){
-      console.warn('profile parse token error', err)
-    }
-    return null
+    submitting: false,
+    bookingRequests: [],
+    verification: null
   }
 
   const formatDateTime = (input) => {
@@ -169,13 +101,63 @@
     return new Intl.DateTimeFormat('th-TH', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
   }
 
+  const formatCurrency = (value) => {
+    if(value === null || value === undefined || value === '') return '-'
+    const number = Number(value)
+    if(Number.isNaN(number)) return '-'
+    try{
+      return new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(number)
+    }catch(err){
+      return `${number.toLocaleString('th-TH')} บาท`
+    }
+  }
+
   const formatRole = (role) => ROLE_LABEL_MAP[role] || role || '-'
+
+  const formatCount = (value) => {
+    if(value === null || value === undefined || value === '') return '-'
+    const number = Number(value)
+    if(Number.isNaN(number)) return '-'
+    return number.toLocaleString('th-TH')
+  }
+
+  const setEmailStatusMessage = (message, { variant = 'info' } = {}) => {
+    if(!emailStatusMessageEl) return
+    const text = (message || '').trim()
+    emailStatusMessageEl.textContent = text
+    emailStatusMessageEl.hidden = text === ''
+    emailStatusMessageEl.classList.remove('is-success', 'is-error')
+    if(text !== ''){
+      if(variant === 'success'){
+        emailStatusMessageEl.classList.add('is-success')
+      } else if(variant === 'error'){
+        emailStatusMessageEl.classList.add('is-error')
+      }
+    }
+  }
+
+  const BOOKING_STATUS_DETAILS = {
+    pending: { label: 'รอดำเนินการ', className: 'status-pending' },
+    approved: { label: 'อนุมัติแล้ว', className: 'status-approved' },
+    confirmed: { label: 'ยืนยันแล้ว', className: 'status-confirmed' },
+    accepted: { label: 'ยืนยันแล้ว', className: 'status-approved' },
+    rejected: { label: 'ถูกปฏิเสธ', className: 'status-rejected' },
+    declined: { label: 'ถูกปฏิเสธ', className: 'status-declined' },
+    cancelled: { label: 'ยกเลิกแล้ว', className: 'status-cancelled' },
+    canceled: { label: 'ยกเลิกแล้ว', className: 'status-canceled' },
+    completed: { label: 'ดำเนินการเสร็จสิ้น', className: 'status-completed' }
+  }
+
+  const resolveBookingStatus = (status) => {
+    const key = typeof status === 'string' ? status.trim().toLowerCase() : ''
+    return BOOKING_STATUS_DETAILS[key] || BOOKING_STATUS_DETAILS.pending
+  }
 
   const ERROR_MESSAGES = {
     invalid_email: 'รูปแบบอีเมลไม่ถูกต้อง',
     email_exists: 'อีเมลนี้ถูกใช้งานแล้ว',
     name_too_long: 'ชื่อยาวเกินไป (สูงสุด 120 ตัวอักษร)',
-    invalid_phone: 'เบอร์โทรศัพท์ไม่ถูกต้อง (ตัวเลขเท่านั้น 7-20 หลัก)',
+    invalid_phone: 'เบอร์ติดต่อไม่ถูกต้อง (กรุณากรอกตัวเลข 7-20 หลัก)',
     password_too_short: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร',
     password_mismatch: 'รหัสผ่านใหม่ไม่ตรงกัน',
     current_password_required: 'กรุณากรอกรหัสผ่านปัจจุบันเพื่อยืนยันการเปลี่ยนรหัสผ่าน',
@@ -187,9 +169,22 @@
     update_failed: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง'
   }
 
+  const VERIFICATION_ERRORS = {
+    profile_lookup_failed: 'ไม่สามารถส่งลิงก์ยืนยันได้ กรุณาลองใหม่อีกครั้ง',
+    profile_not_found: 'ไม่พบบัญชีผู้ใช้',
+    verification_prepare_failed: 'ไม่สามารถเตรียมลิงก์ยืนยันได้ กรุณาลองใหม่อีกครั้ง',
+    verification_create_failed: 'ไม่สามารถส่งลิงก์ยืนยันได้ กรุณาลองใหม่อีกครั้ง',
+    method_not_allowed: 'รูปแบบคำขอไม่ถูกต้อง'
+  }
+
+  const isValidEmail = (value) => {
+    if(!value) return false
+    return /^\S+@\S+\.\S+$/.test(String(value).trim())
+  }
+
   const isValidPhone = (value) => {
-    if(!value || value.trim() === '') return true // Phone is optional
-    return /^[0-9+\-\s()]{7,20}$/.test(String(value).trim())
+    if(!value || value.trim() === '') return true
+    return /^[0-9+\-()\s]{7,20}$/.test(String(value).trim())
   }
 
   const setEditStatus = (message, isSuccess = false) => {
@@ -197,11 +192,7 @@
     const text = (message || '').trim()
     editStatus.textContent = text
     editStatus.hidden = !text
-    editStatus.classList.remove('success', 'error', 'info')
-    if(text) {
-      const type = isSuccess ? 'success' : (text.includes('กรุณา') || text.includes('ไม่ถูกต้อง') ? 'error' : 'info')
-      editStatus.classList.add(type)
-    }
+    editStatus.classList.toggle('form-msg--success', Boolean(isSuccess && text))
   }
 
   const clearEditPasswords = () => {
@@ -258,15 +249,8 @@
 
   const setEditSubmitting = (submitting) => {
     profileState.submitting = Boolean(submitting)
-    const submitBtn = editSubmitBtn
-    if(submitBtn){
-      if(submitting) {
-        submitBtn.classList.add('btn-loading')
-        submitBtn.textContent = 'กำลังบันทึก...'
-      } else {
-        submitBtn.classList.remove('btn-loading')
-        submitBtn.textContent = 'บันทึกการเปลี่ยนแปลง'
-      }
+    if(editSubmitBtn){
+      editSubmitBtn.textContent = submitting ? 'กำลังบันทึก...' : 'บันทึก'
     }
     setEditingMode(profileState.isEditing)
   }
@@ -274,171 +258,161 @@
   setEditStatus('')
   setEditingMode(false, { resetForm: true, preserveStatus: true })
 
-  const showNotification = (message, type = 'info') => {
-    // Create notification element
-    const notification = document.createElement('div')
-    notification.className = `notification notification-${type}`
-    notification.textContent = message
-
-    // Add to page
-    document.body.appendChild(notification)
-
-    // Show notification
-    setTimeout(() => notification.classList.add('show'), 10)
-
-    // Hide and remove after 3 seconds
-    setTimeout(() => {
-      notification.classList.remove('show')
-      setTimeout(() => {
-        if(notification.parentNode) {
-          notification.parentNode.removeChild(notification)
-        }
-      }, 300)
-    }, 3000)
-  }
-
-  const renderSummary = (stats = {}) => {
-    if(!summaryEl) return
-    summaryEl.innerHTML = ''
+  const renderSummary = (stats) => {
     if(!stats || Object.keys(stats).length === 0){
-      summaryEl.innerHTML = `
-        <div class="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 19V13C9 11.8954 8.10457 11 7 11H5C3.89543 11 3 11.89543 3 13V19C3 20.1046 3.89543 21 5 21H7C8.10457 21 9 20.1046 9 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V11C15 12.1046 14.1046 13 13 13H11C9.89543 13 9 12.1046 9 11V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M21 9C21 7.89543 20.1046 7 19 7H17C15.8954 7 15 7.89543 15 9V15C15 16.1046 15.8954 17 17 17H19C20.1046 17 21 16.1046 21 15V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <h3>ยังไม่มีข้อมูลสถิติ</h3>
-          <p>ข้อมูลสถิติการใช้งานจะแสดงเมื่อคุณเริ่มใช้งานระบบ</p>
-        </div>`
-      return
-    }
-
-    const statIcons = {
-      listings_total: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 21V5C19 3.89543 18.1046 3 17 3H7C5.89543 3 5 3.89543 5 5V21M19 21L21 21M19 21H14M5 21L3 21M5 21H10M9 9H15M9 13H15M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      listings_active: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      booking_requests_total: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 7V3M16 7V3M18 21H6C4.89543 21 4 20.1046 4 19V7C4 5.89543 4.89543 5 6 5H18C19.1046 5 20 5.89543 20 7V19C20 20.1046 19.1046 21 18 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      booking_requests_pending: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      conversations_total: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 12H8.01M12 12H12.01M16 12H16.01M21 12C21 16.9706 16.9706 21 12 21C10.89 21 9.83 20.75 8.88 20.3L3 21L4.7 15.12C4.25 14.17 4 13.11 4 12C4 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      messages_unread: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.5 12C18.5 15.5899 15.5899 18.5 12 18.5C8.41015 18.5 5.5 15.5899 5.5 12C5.5 8.41015 8.41015 5.5 12 5.5C15.5899 5.5 18.5 8.41015 18.5 12Z" stroke="currentColor" stroke-width="2"/><path d="M12 8V12L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/></svg>`,
-      bookings_sent: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 19L19 12L12 5M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-    }
-
-    const fragments = Object.keys(stats)
-      .filter((key) => STAT_LABELS[key] !== undefined)
-      .map((key, index) => {
-        const value = Number(stats[key])
-        const display = Number.isFinite(value) ? value.toLocaleString('th-TH') : stats[key]
-        const icon = statIcons[key] || statIcons.listings_total
-        return `
-          <div class="stat-item">
-            <div class="stat-icon">${icon}</div>
-            <div class="stat-value">${display}</div>
-            <div class="stat-label">${STAT_LABELS[key]}</div>
-          </div>`
+      // Set default values for stats elements
+      const statElements = ['statsListings', 'statsBookings', 'statsMessages', 'statsRating']
+      statElements.forEach(id => {
+        const el = document.getElementById(id)
+        if(el) el.textContent = '-'
       })
-
-    if(fragments.length === 0){
-      summaryEl.innerHTML = `
-        <div class="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 19V13C9 11.8954 8.10457 11 7 11H5C3.89543 11 3 11.89543 3 13V19C3 20.1046 3.89543 21 5 21H7C8.10457 21 9 20.1046 9 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V11C15 12.1046 14.1046 13 13 13H11C9.89543 13 9 12.1046 9 11V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M21 9C21 7.89543 20.1046 7 19 7H17C15.8954 7 15 7.89543 15 9V15C15 16.1046 15.8954 17 17 17H19C20.1046 17 21 16.1046 21 15V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <h3>ยังไม่มีข้อมูลสถิติ</h3>
-          <p>ข้อมูลสถิติการใช้งานจะแสดงเมื่อคุณเริ่มใช้งานระบบ</p>
-        </div>`
       return
     }
-    summaryEl.innerHTML = fragments.join('')
+
+    // Map stats to new element IDs
+    const statMappings = {
+      listings_total: 'statsListings',
+      listings_active: 'statsListings', // Use active listings if available, otherwise total
+      booking_requests_total: 'statsBookings',
+      booking_requests_pending: 'statsBookings', // Use total bookings
+      conversations_total: 'statsMessages',
+      messages_unread: 'statsMessages', // Use total conversations
+      bookings_sent: 'statsBookings' // Alternative mapping
+    }
+
+    // Update each stat element
+    Object.keys(statMappings).forEach(statKey => {
+      const elementId = statMappings[statKey]
+      const element = document.getElementById(elementId)
+      if(element && stats[statKey] !== undefined){
+        const value = Number(stats[statKey])
+        const display = Number.isFinite(value) ? value.toLocaleString('th-TH') : stats[statKey]
+        element.textContent = display
+      }
+    })
+
+    // Handle rating separately (if available)
+    const ratingEl = document.getElementById('statsRating')
+    if(ratingEl){
+      const rating = stats.rating || stats.average_rating || 0
+      const display = Number.isFinite(Number(rating)) ? Number(rating).toFixed(1) : '-'
+      ratingEl.textContent = display
+    }
   }
 
-  const handleAvatarUpload = async (file) => {
-    if(!file) return
+  const renderBookingOverview = (requests = []) => {
+    if(!bookingOverviewList || !bookingOverviewEmpty || !bookingOverviewTotal) return
 
-    // Validate file type
-    if(!file.type.startsWith('image/')) {
-      alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น')
+    const items = Array.isArray(requests) ? requests.slice() : []
+    bookingOverviewList.innerHTML = ''
+    bookingOverviewTotal.textContent = `${items.length.toLocaleString('th-TH')} รายการ`
+
+    if(items.length === 0){
+      bookingOverviewEmpty.hidden = false
       return
     }
 
-    // Validate file size (max 5MB)
-    if(file.size > 5 * 1024 * 1024) {
-      alert('ขนาดไฟล์ต้องไม่เกิน 5MB')
+    bookingOverviewEmpty.hidden = true
+
+    items.forEach((item) => {
+      const listItem = document.createElement('li')
+      listItem.className = 'summary-booking-item'
+
+      const header = document.createElement('div')
+      header.className = 'summary-booking-item-header'
+
+      const title = document.createElement('h3')
+      title.className = 'summary-booking-title'
+      title.textContent = item.listing_title || 'ไม่ระบุชื่อที่พัก'
+
+      const statusInfo = resolveBookingStatus(item.status)
+      const statusEl = document.createElement('span')
+      statusEl.className = `summary-booking-status ${statusInfo.className}`
+      statusEl.textContent = statusInfo.label
+
+      header.appendChild(title)
+      header.appendChild(statusEl)
+      listItem.appendChild(header)
+
+      const meta = document.createElement('div')
+      meta.className = 'summary-booking-meta'
+
+      const createdSpan = document.createElement('span')
+      createdSpan.textContent = `ส่งเมื่อ ${formatDateTime(item.created_at)}`
+      meta.appendChild(createdSpan)
+
+      if(item.listing_price !== null && item.listing_price !== undefined){
+        const priceSpan = document.createElement('span')
+        priceSpan.textContent = `ราคา ${formatCurrency(item.listing_price)}`
+        meta.appendChild(priceSpan)
+      }
+
+      if(item.listing_province){
+        const locationSpan = document.createElement('span')
+        locationSpan.textContent = `จังหวัด ${item.listing_province}`
+        meta.appendChild(locationSpan)
+      }
+
+      if(item.requester_phone){
+        const phoneSpan = document.createElement('span')
+        phoneSpan.textContent = `โทรศัพท์ ${item.requester_phone}`
+        meta.appendChild(phoneSpan)
+      }
+
+      listItem.appendChild(meta)
+
+      if(item.message){
+        const note = document.createElement('p')
+        note.className = 'summary-booking-note'
+        note.textContent = item.message
+        listItem.appendChild(note)
+      }
+
+      bookingOverviewList.appendChild(listItem)
+    })
+  }
+
+  const redirectToHome = () => {
+    window.location.href = 'index.html'
+  }
+
+  const handleVerificationResponse = (info, { silent = false } = {}) => {
+    if(!info) return
+    profileState.verification = info
+
+    if(info.already_verified){
+      profileState.user = { ...profileState.user, email_verified: 1 }
+      if(detailEmailStatusLabelEl) detailEmailStatusLabelEl.textContent = 'ยืนยันแล้ว'
+      else if(detailEmailStatusEl) detailEmailStatusEl.textContent = 'ยืนยันแล้ว'
+      if(detailEmailVerifyBtn){
+        detailEmailVerifyBtn.hidden = true
+        detailEmailVerifyBtn.disabled = true
+      }
+      if(!silent){
+        setEmailStatusMessage('อีเมลนี้ยืนยันเรียบร้อยแล้ว', { variant: 'success' })
+      }
       return
     }
 
-    const token = getAuthToken()
-    if(!token) {
-      redirectToHome()
-      return
+    if(info.debug_link){
+      console.info('Email verification link:', info.debug_link)
     }
 
-    // Show loading state
-    if(avatarEl) {
-      avatarEl.classList.add('uploading')
+    if(detailEmailVerifyBtn){
+      detailEmailVerifyBtn.hidden = false
+      detailEmailVerifyBtn.disabled = false
+      const originalText = detailEmailVerifyBtn.dataset.label || detailEmailVerifyBtn.textContent || 'ส่งลิงก์ยืนยัน'
+      detailEmailVerifyBtn.textContent = originalText
     }
 
-    const formData = new FormData()
-    formData.append('avatar', file)
-
-    try {
-      const res = await fetch(api('user/upload_avatar.php'), {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + token
-        },
-        body: formData
-      })
-
-      if(!res.ok) {
-        if(res.status === 401 || res.status === 403) {
-          redirectToHome()
-          return
-        }
-        throw new Error('Upload failed')
+    if(!silent){
+      const email = profileState.user?.email || info.email || ''
+      const expiresDisplay = info.expires_at ? formatDateTime(info.expires_at) : ''
+      let statusText = 'ส่งลิงก์ยืนยันไปยัง ' + (email || 'อีเมลของคุณ') + ' แล้ว'
+      if(expiresDisplay && expiresDisplay !== '-'){
+        statusText += ` ลิงก์จะหมดอายุ ${expiresDisplay}`
       }
-
-      const data = await res.json()
-
-      if(data.success && data.avatar_url) {
-        // Update user data with new avatar
-        if(profileState.user) {
-          profileState.user.avatar = data.avatar_url
-        }
-
-        // Update localStorage
-        const stored = localStorage.getItem('user')
-        if(stored) {
-          try {
-            const userData = JSON.parse(stored)
-            userData.avatar = data.avatar_url
-            localStorage.setItem('user', JSON.stringify(userData))
-          } catch(err) {
-            console.warn('Failed to update localStorage avatar', err)
-          }
-        }
-
-        // Re-render profile to show new avatar
-        renderProfile({ user: profileState.user, stats: profileState.stats })
-
-        // Dispatch event for other components
-        document.dispatchEvent(new CustomEvent('profile:avatarUpdated', { detail: { avatar_url: data.avatar_url } }))
-
-        // Show success message
-        showNotification('อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว', 'success')
-      } else {
-        throw new Error(data.message || 'Upload failed')
-      }
-    } catch(err) {
-      console.error('Avatar upload error', err)
-      showNotification('ไม่สามารถอัปโหลดรูปโปรไฟล์ได้ กรุณาลองใหม่อีกครั้ง', 'error')
-    } finally {
-      // Remove loading state
-      if(avatarEl) {
-        avatarEl.classList.remove('uploading')
-      }
+      setEmailStatusMessage(statusText, { variant: 'success' })
     }
   }
 
@@ -454,74 +428,129 @@
     const user = profileState.user || {}
     const stats = profileState.stats || {}
 
-    if(nameEl) nameEl.textContent = user.name || user.email || '-'
-    if(emailEl) emailEl.textContent = user.email || '-'
-    if(phoneEl) phoneEl.textContent = user.phone || '-'
-    if(roleEl) roleEl.textContent = formatRole(user.role)
-    if(createdEl) createdEl.textContent = user.created_at ? formatDateTime(user.created_at) : '-'
-    if(user.last_login){
-      if(lastLoginWrapper) lastLoginWrapper.hidden = false
-      if(lastLoginEl) lastLoginEl.textContent = formatDateTime(user.last_login)
-    } else if(lastLoginWrapper){
-      lastLoginWrapper.hidden = true
-    }
+    const fallbackName = user.name || user.email || '-'
+    const fallbackEmail = user.email || '-'
+    const formattedRole = formatRole(user.role)
+    const joinedAt = user.created_at ? formatDateTime(user.created_at) : '-'
+    const phoneNumber = user.phone ? String(user.phone).trim() : ''
+    const displayPhone = phoneNumber || '-'
+    const emailVerifiedRaw = user.email_verified ?? user.email_verified_at ?? user.verified ?? null
+    const isEmailVerified = emailVerifiedRaw === true || emailVerifiedRaw === 'true' || emailVerifiedRaw === 1 || emailVerifiedRaw === '1'
+    const emailStatusLabel = isEmailVerified ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน'
+    const lastLoginDisplay = user.last_login ? formatDateTime(user.last_login) : '-'
+  const verifiedAtDisplay = user.email_verified_at ? formatDateTime(user.email_verified_at) : '-'
 
-    // Update account status indicator
-    if(accountStatusIndicator && statusBadge) {
-      const emailVerifiedValue = user.email_verified ?? user.email_verified_at ?? user.verified
-      const isVerified = emailVerifiedValue === true || emailVerifiedValue === 'true' || emailVerifiedValue === 1 || emailVerifiedValue === '1'
-      const isActive = user.status === 'active' || !user.status
+    if(nameEl) nameEl.textContent = fallbackName
+    if(displayNameEl) displayNameEl.textContent = fallbackName
+    if(emailEl) emailEl.textContent = fallbackEmail
+    if(displayEmailEl) displayEmailEl.textContent = fallbackEmail
+    if(phoneEl) phoneEl.textContent = displayPhone
+    if(displayPhoneEl) displayPhoneEl.textContent = displayPhone
+    if(roleEl) roleEl.textContent = formattedRole
+    if(displayRoleEl) displayRoleEl.textContent = formattedRole
+    if(createdEl) createdEl.textContent = joinedAt
+    if(displayCreatedEl) displayCreatedEl.textContent = joinedAt
+    if(detailNameEl) detailNameEl.textContent = fallbackName
+    if(detailEmailEl) detailEmailEl.textContent = fallbackEmail
+    if(detailPhoneEl) detailPhoneEl.textContent = displayPhone
+    if(detailRoleEl) detailRoleEl.textContent = formattedRole
+    if(detailCreatedEl) detailCreatedEl.textContent = joinedAt
+    if(detailLastLoginEl) detailLastLoginEl.textContent = lastLoginDisplay
+    if(detailEmailStatusLabelEl) detailEmailStatusLabelEl.textContent = emailStatusLabel
+    else if(detailEmailStatusEl) detailEmailStatusEl.textContent = emailStatusLabel
 
-      let statusKey = 'pending'
-      if(!isActive){
-        statusKey = 'suspended'
-      } else if(isVerified){
-        statusKey = 'verified'
-      }
-
-      const content = ACCOUNT_STATUS_CONTENT[statusKey] || ACCOUNT_STATUS_CONTENT.pending
-      statusBadge.textContent = content.badge
-      statusBadge.className = `status-badge status-${statusKey}`
-      if(statusMessage){
-        statusMessage.textContent = content.message
-      }
-      if(statusIconWrapper){
-        statusIconWrapper.innerHTML = content.icon
-      }
-      accountStatusIndicator.classList.remove('status-verified', 'status-pending', 'status-suspended')
-      accountStatusIndicator.classList.add(`status-${statusKey}`)
-      accountStatusIndicator.hidden = false
-    } else if(accountStatusIndicator){
-      accountStatusIndicator.hidden = true
-    }
-
-    // Update display elements in hero section
-    if(displayNameEl) displayNameEl.textContent = user.name || user.email || '-'
-    if(displayEmailEl) displayEmailEl.textContent = user.email || '-'
-    if(displayRoleEl) displayRoleEl.textContent = formatRole(user.role)
-    if(displayCreatedEl) displayCreatedEl.textContent = user.created_at ? formatDateTime(user.created_at) : '-'
-
-    // Render avatar
-    if(avatarEl) {
-      if(user.avatar) {
-        avatarEl.style.backgroundImage = `url('${user.avatar}')`
+    if(avatarEl){
+      const avatarUrl = user.avatar ? String(user.avatar).trim() : ''
+      if(avatarUrl){
+        avatarEl.style.backgroundImage = `url('${avatarUrl}')`
         avatarEl.style.backgroundSize = 'cover'
         avatarEl.style.backgroundPosition = 'center'
-        avatarEl.style.backgroundColor = 'transparent'
         avatarEl.textContent = ''
-      } else {
+      }else{
         avatarEl.style.backgroundImage = 'none'
         avatarEl.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'
-        const name = user.name || user.email || '?'
-        avatarEl.textContent = name.charAt(0).toUpperCase()
+        const avatarInitial = (fallbackName || '').trim().charAt(0).toUpperCase() || 'U'
+        avatarEl.textContent = avatarInitial
       }
     }
-
+    if(user.last_login){
+      if(lastLoginWrapper) lastLoginWrapper.hidden = false
+      if(lastLoginEl) lastLoginEl.textContent = lastLoginDisplay
+    } else if(lastLoginWrapper){
+      lastLoginWrapper.hidden = true
+      if(lastLoginEl) lastLoginEl.textContent = '-'
+    }
     renderSummary(stats)
+    if(detailListingsEl) detailListingsEl.textContent = formatCount(stats.listings_total ?? stats.listings_active)
+    if(detailBookingsEl){
+      const totalBookings = stats.booking_requests_total ?? profileState.bookingRequests.length ?? null
+      detailBookingsEl.textContent = formatCount(totalBookings)
+    }
+    if(detailConversationsEl) detailConversationsEl.textContent = formatCount(stats.conversations_total)
+    if(detailUnreadEl) detailUnreadEl.textContent = formatCount(stats.messages_unread)
+
+    // Verification is disabled in this deployment: hide the verification control
+    if(detailEmailVerifyBtn){
+      detailEmailVerifyBtn.hidden = true
+      detailEmailVerifyBtn.disabled = true
+    }
+
+    // Show verified message regardless (users are auto-verified)
+    const successMessage = verifiedAtDisplay && verifiedAtDisplay !== '-' ? `ยืนยันเมื่อ ${verifiedAtDisplay}` : 'ยืนยันอีเมลเรียบร้อยแล้ว'
+    setEmailStatusMessage(successMessage, { variant: 'success' })
+  }
+
+  const requestEmailVerification = async () => {
+    if(!detailEmailVerifyBtn) return
+    const token = localStorage.getItem('authToken')
+    if(!token){
+      redirectToHome()
+      return
+    }
+
+    const originalText = detailEmailVerifyBtn.dataset.label || detailEmailVerifyBtn.textContent || 'ส่งลิงก์ยืนยัน'
+    detailEmailVerifyBtn.disabled = true
+    detailEmailVerifyBtn.textContent = 'กำลังส่ง...'
+  setEmailStatusMessage('กำลังส่งลิงก์ยืนยันไปยังอีเมลของคุณ...')
+
+    try{
+      const res = await fetch(api('user/send_verification.php'), {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+
+      let json = null
+      try{
+        json = await res.json()
+      }catch(parseErr){
+        console.warn('verification response parse error', parseErr)
+      }
+
+      if(!res.ok){
+        const errorCode = json?.error || ''
+        const friendly = VERIFICATION_ERRORS[errorCode] || 'ไม่สามารถส่งลิงก์ยืนยันได้ กรุณาลองใหม่อีกครั้ง'
+        setEmailStatusMessage(friendly, { variant: 'error' })
+        return
+      }
+
+      if(json){
+        handleVerificationResponse(json)
+      } else {
+        setEmailStatusMessage('ส่งลิงก์ยืนยันแล้ว กรุณาตรวจสอบกล่องอีเมลของคุณ', { variant: 'success' })
+      }
+    }catch(err){
+      console.error('requestEmailVerification error', err)
+      setEmailStatusMessage('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง', { variant: 'error' })
+    }finally{
+      if(detailEmailVerifyBtn){
+        detailEmailVerifyBtn.disabled = false
+        detailEmailVerifyBtn.textContent = originalText
+      }
+    }
   }
 
   const loadProfile = async () => {
-    const token = getAuthToken()
+    const token = localStorage.getItem('authToken')
     if(!token){
       redirectToHome()
       return
@@ -552,12 +581,23 @@
       const data = await res.json()
       if(extrasContainer){
         extrasContainer.innerHTML = ''
-        extrasContainer.hidden = true
       }
       renderProfile(data)
       prefillProfileForm({ force: true })
 
+      if(profileState.user && (profileState.user.email_verified === 1 || profileState.user.email_verified === true)){
+        profileState.verification = null
+      }
+
+      // Update header user status
+      if(typeof renderUserStatus === 'function'){
+        renderUserStatus()
+      }
+
       const profileUserId = Number(data?.user?.id) || userId
+      if(token){
+        loadCustomerBookingRequests(token)
+      }
       if(userRole === 'landlord' || userRole === 'host' || userRole === 'admin'){
         try{
           const query = userRole === 'admin' && profileUserId > 0 ? `?owner_id=${encodeURIComponent(profileUserId)}` : ''
@@ -576,11 +616,38 @@
       }
     }catch(err){
       console.error('loadProfile', err)
-      if(summaryEl){
-        summaryEl.innerHTML = '<div class="empty-state">ไม่สามารถโหลดข้อมูลโปรไฟล์ได้ กรุณาลองใหม่ภายหลัง</div>'
-      }
     }
   }
+
+  async function loadCustomerBookingRequests(token){
+    if(!token) return
+    try{
+      const res = await fetch(api('user/my_booking_requests.php'), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      if(res.status === 401 || res.status === 403){
+        profileState.bookingRequests = []
+        renderBookingOverview([])
+        return
+      }
+      if(!res.ok){
+        console.warn('profile my bookings response', res.status)
+        return
+      }
+      const data = await res.json().catch(() => null)
+      const requests = Array.isArray(data?.requests) ? data.requests : []
+      profileState.bookingRequests = requests
+      renderBookingOverview(requests)
+      if(detailBookingsEl){
+        const totalFromStats = profileState.stats?.booking_requests_total
+        detailBookingsEl.textContent = formatCount(totalFromStats ?? requests.length)
+      }
+    }catch(err){
+      console.warn('profile load customer bookings error', err)
+    }
+  }
+
+  renderBookingOverview([])
 
   const handleProfileSubmit = async (event) => {
     event.preventDefault()
@@ -589,7 +656,7 @@
 
     const name = editNameInput ? editNameInput.value.trim() : ''
     const email = editEmailInput ? editEmailInput.value.trim() : ''
-    const phone = editPhoneInput ? editPhoneInput.value.trim() : ''
+  const phone = editPhoneInput ? editPhoneInput.value.trim() : ''
     const currentPassword = editCurrentPasswordInput ? editCurrentPasswordInput.value : ''
     const newPassword = editNewPasswordInput ? editNewPasswordInput.value : ''
     const confirmPassword = editConfirmPasswordInput ? editConfirmPasswordInput.value : ''
@@ -605,7 +672,7 @@
       return
     }
 
-    if(phone && !isValidPhone(phone)){
+    if(!isValidPhone(phone)){
       setEditStatus(ERROR_MESSAGES.invalid_phone)
       if(editPhoneInput) editPhoneInput.focus()
       return
@@ -630,7 +697,7 @@
       }
     }
 
-    const token = getAuthToken()
+    const token = localStorage.getItem('authToken')
     if(!token){
       redirectToHome()
       return
@@ -686,8 +753,15 @@
         profileState.stats = { ...json.stats }
       }
 
-      renderProfile({ user: profileState.user, stats: profileState.stats || {} })
-      prefillProfileForm({ force: true, preserveStatus: true })
+    renderProfile({ user: profileState.user, stats: profileState.stats || {} })
+    prefillProfileForm({ force: true, preserveStatus: true })
+    renderBookingOverview(profileState.bookingRequests)
+
+    if(json?.verification){
+      handleVerificationResponse(json.verification)
+    } else if(json?.user && (json.user.email_verified === 1 || json.user.email_verified === true)){
+      profileState.verification = null
+    }
 
       let storedUser = {}
       const stored = localStorage.getItem('user')
@@ -739,443 +813,176 @@
 
   if(editCancelBtn){
     editCancelBtn.addEventListener('click', () => {
-      clearEditPasswords()
-      setEditStatus('')
       setEditingMode(false, { resetForm: true })
-    })
-  }
-
-  if(avatarUploadBtn && avatarUploadInput) {
-    avatarUploadBtn.addEventListener('click', () => {
-      avatarUploadInput.click()
-    })
-
-    avatarUploadInput.addEventListener('change', (event) => {
-      const file = event.target.files[0]
-      if(file) {
-        handleAvatarUpload(file)
+      if(editToggleBtn){
+        window.requestAnimationFrame(() => editToggleBtn.focus())
       }
     })
   }
 
-  const loadRecentActivities = async () => {
-    const timelineEl = document.getElementById('activityTimeline')
-    if(!timelineEl) return
+  if(detailEmailVerifyBtn){
+    // disable/hide the verify button — verification is not required
+    detailEmailVerifyBtn.hidden = true
+    detailEmailVerifyBtn.disabled = true
+  }
 
-    const token = getAuthToken()
-    if(!token){
-      renderEmptyActivities()
+  document.addEventListener('DOMContentLoaded', () => {
+    const userStr = localStorage.getItem('user')
+    if(!userStr){
       redirectToHome()
       return
     }
 
-    try {
-      const response = await fetch(api('user/activities.php'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if(response.status === 401 || response.status === 403){
-        redirectToHome()
-        return
-      }
-      if(!response.ok) throw new Error('Failed to load activities')
-
-      const data = await response.json()
-
-      if(data.success && data.activities && data.activities.length > 0) {
-        renderActivities(data.activities)
-      } else {
-        renderEmptyActivities()
-      }
-    } catch (error) {
-      console.error('Error loading activities:', error)
-      renderEmptyActivities()
-    }
-  }
-
-  const renderActivities = (activities) => {
-    const timelineEl = document.getElementById('activityTimeline')
-    if(!timelineEl) return
-
-    const activitiesHtml = activities.map(activity => {
-      const iconClass = getActivityIconClass(activity.type)
-      const iconSvg = getActivityIconSvg(activity.type)
-      const timeAgo = formatTimeAgo(activity.created_at)
-
-      return `
-        <div class="activity-item">
-          <div class="activity-icon ${iconClass}">
-            ${iconSvg}
-          </div>
-          <div class="activity-content">
-            <p class="activity-text">${escapeHtml(activity.description)}</p>
-            <span class="activity-time">${timeAgo}</span>
-          </div>
-        </div>
-      `
-    }).join('')
-
-    timelineEl.innerHTML = activitiesHtml
-  }
-
-  const renderEmptyActivities = () => {
-    const timelineEl = document.getElementById('activityTimeline')
-    if(!timelineEl) return
-
-    timelineEl.innerHTML = `
-      <div class="activity-empty">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M19 15L17.5 16.5L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M7 12L5.5 13.5L3 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <h3>ยังไม่มีกิจกรรม</h3>
-        <p>กิจกรรมของคุณจะปรากฏที่นี่เมื่อคุณเริ่มใช้งาน</p>
-      </div>
-    `
-  }
-
-  const getActivityIconClass = (type) => {
-    const classes = {
-      message: 'activity-message',
-      booking: 'activity-booking',
-      profile: 'activity-profile'
-    }
-    return classes[type] || 'activity-profile'
-  }
-
-  const getActivityIconSvg = (type) => {
-    const icons = {
-      message: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`,
-      booking: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`,
-      profile: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`
-    }
-    return icons[type] || icons.profile
-  }
-
-  const formatTimeAgo = (dateString) => {
-    const now = new Date()
-    const date = new Date(dateString)
-    const diffMs = now - date
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffMins < 1) return 'เมื่อสักครู่'
-    if (diffMins < 60) return `${diffMins} นาทีที่แล้ว`
-    if (diffHours < 24) return `${diffHours} ชั่วโมงที่แล้ว`
-    if (diffDays < 7) return `${diffDays} วันที่แล้ว`
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} สัปดาห์ที่แล้ว`
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} เดือนที่แล้ว`
-    return `${Math.floor(diffDays / 365)} ปีที่แล้ว`
-  }
-
-  const loadAccountSettings = async () => {
-    await loadEmailVerificationStatus()
-    setupAccountSettingsListeners()
-  }
-
-  const loadEmailVerificationStatus = async () => {
-    const statusEl = document.getElementById('emailVerificationStatus')
-    if(!statusEl) return
-
-    const token = getAuthToken()
-    if(!token){
-      statusEl.textContent = 'กรุณาเข้าสู่ระบบอีกครั้ง'
-      redirectToHome()
-      return
+    if(emailStatusMessageEl){
+      emailStatusMessageEl.hidden = true
     }
 
-    try {
-      const response = await fetch(api('user/profile.php'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if(response.status === 401 || response.status === 403){
-        redirectToHome()
-        return
-      }
-      if(!response.ok) throw new Error('Failed to load profile')
-
-      const data = await response.json()
-      const userData = data.user || data
-      if(userData) {
-        const emailVerifiedValue = userData.email_verified ?? userData.email_verified_at ?? userData.verified
-        const isVerified = emailVerifiedValue === true || emailVerifiedValue === 'true' || emailVerifiedValue === 1 || emailVerifiedValue === '1'
-        profileState.user = { ...profileState.user, ...userData, email_verified: isVerified }
-        updateVerificationStatus(isVerified)
-      } else {
-        statusEl.textContent = 'ไม่สามารถโหลดข้อมูลได้'
-      }
-    } catch (error) {
-      console.error('Error loading verification status:', error)
-      statusEl.textContent = 'ไม่สามารถโหลดข้อมูลได้'
-    }
-  }
-
-  const updateVerificationStatus = (isVerified) => {
-    const statusEl = document.getElementById('emailVerificationStatus')
-    const badgeEl = document.getElementById('verificationBadge')
-    const resendBtn = document.getElementById('resendVerificationBtn')
-
-    if (badgeEl) {
-      badgeEl.className = 'verification-badge'
-      if (isVerified) {
-        badgeEl.classList.add('verified')
-        badgeEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-      } else {
-        badgeEl.classList.add('unverified')
-        badgeEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 9V11M12 15H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-      }
-    }
-
-    if (statusEl) {
-      if (isVerified) {
-        statusEl.textContent = 'อีเมลของคุณได้รับการยืนยันแล้ว'
-        statusEl.style.color = 'var(--profile-success)'
-      } else {
-        statusEl.textContent = 'กรุณายืนยันอีเมลของคุณเพื่อความปลอดภัย'
-        statusEl.style.color = 'var(--profile-warning)'
-      }
-    }
-
-    if (resendBtn) {
-      resendBtn.style.display = isVerified ? 'none' : 'inline-flex'
-    }
-  }
-
-  const setupAccountSettingsListeners = () => {
-    // Resend verification email
-    const resendBtn = document.getElementById('resendVerificationBtn')
-    if(resendBtn) {
-      resendBtn.addEventListener('click', handleResendVerification)
-    }
-
-    // Change password button (opens password section)
-    const changePasswordBtn = document.getElementById('changePasswordBtn')
-    if(changePasswordBtn) {
-      changePasswordBtn.addEventListener('click', () => {
-        const passwordFieldset = document.getElementById('profilePasswordFieldset')
-        const editToggle = document.getElementById('profileEditToggle')
-        if(passwordFieldset && editToggle) {
-          // Enable edit mode if not already enabled
-          if(editToggle.textContent.trim() === 'แก้ไข') {
-            editToggle.click()
-          }
-          // Enable password fields
-          passwordFieldset.disabled = false
-          const inputs = passwordFieldset.querySelectorAll('input')
-          inputs.forEach(input => input.disabled = false)
-          // Focus on current password field
-          const currentPasswordInput = document.getElementById('profileEditCurrentPassword')
-          if(currentPasswordInput) {
-            currentPasswordInput.focus()
-            currentPasswordInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    let profileIssueWidget = null
+    const issueContainer = document.getElementById('userIssueCenter')
+    if(issueContainer && typeof window.createIssuesWidget === 'function'){
+      const issueCategories = [
+        { value: 'ทั่วไป', label: 'ทั่วไป' },
+        { value: 'การใช้งานระบบ', label: 'การใช้งานระบบ' },
+        { value: 'การค้นหาที่พัก', label: 'การค้นหาที่พัก' },
+        { value: 'การจอง', label: 'ขั้นตอนการจอง' },
+        { value: 'บัญชีและเข้าสู่ระบบ', label: 'บัญชีและการเข้าสู่ระบบ' }
+      ]
+      profileIssueWidget = window.createIssuesWidget(issueContainer, {
+        heading: 'แจ้งปัญหา / ติดต่อทีมงาน',
+        description: 'ส่งคำถามหรือรายงานปัญหาเกี่ยวกับการใช้งาน U-Nai Dee ได้ที่นี่',
+        categories: issueCategories,
+        defaultCategory: issueCategories[0]?.value || 'ทั่วไป',
+        context: 'customer',
+        onLoginRequest: () => {
+          if(typeof openAuthPanel === 'function'){
+            openAuthPanel('login')
+          } else {
+            window.location.href = 'login.html'
           }
         }
       })
+
+      document.addEventListener('profile:updated', () => {
+        profileIssueWidget?.reload?.()
+      })
     }
 
-    // Logout button in sidebar
-    const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn')
-    if(sidebarLogoutBtn) {
-      sidebarLogoutBtn.addEventListener('click', handleLogout)
-    }
-  }
+    const sidebarLinks = Array.prototype.slice.call(document.querySelectorAll('.sidebar-nav .sidebar-link'))
+    const anchorLinks = sidebarLinks.filter((link) => {
+      const href = (link.getAttribute('href') || '').trim()
+      return href.startsWith('#')
+    })
 
-  const handleResendVerification = async () => {
-    const resendBtn = document.getElementById('resendVerificationBtn')
-    const originalText = resendBtn.textContent
+    const activateSidebarSection = (sectionId, { scroll = true, updateHash = true } = {}) => {
+      if(!sectionId) return
+      const normalizedId = String(sectionId).replace(/^#/, '')
 
-    try {
-      resendBtn.disabled = true
-      resendBtn.textContent = 'กำลังส่ง...'
-
-      const response = await fetch(api('request_password_reset.php'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: document.getElementById('profileEmail').textContent.trim(),
-          type: 'verification'
-        })
+      anchorLinks.forEach((link) => {
+        const href = (link.getAttribute('href') || '').trim()
+        const isActive = href === `#${normalizedId}` || href === normalizedId
+        link.classList.toggle('is-active', isActive)
+        if(isActive){
+          link.setAttribute('aria-current', 'page')
+        } else {
+          link.removeAttribute('aria-current')
+        }
       })
 
-      const data = await response.json()
-
-      if(data.success) {
-        showNotification('ส่งอีเมลยืนยันใหม่แล้ว กรุณาตรวจสอบกล่องจดหมาย', 'success')
-        resendBtn.textContent = 'ส่งแล้ว'
-        setTimeout(() => {
-          resendBtn.textContent = originalText
-          resendBtn.disabled = false
-        }, 30000) // Disable for 30 seconds
-      } else {
-        throw new Error(data.message || 'Failed to resend verification')
+      if(scroll){
+        const target = document.getElementById(normalizedId)
+        if(target){
+          const previousTabIndex = target.hasAttribute('tabindex') ? target.getAttribute('tabindex') : null
+          if(previousTabIndex === null) target.setAttribute('tabindex', '-1')
+          try{
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }catch(err){
+            target.scrollIntoView()
+          }
+          if(typeof target.focus === 'function'){
+            try{
+              target.focus({ preventScroll: true })
+            }catch(err){
+              target.focus()
+            }
+          }
+          if(previousTabIndex === null){
+            const removeTabIndex = () => {
+              target.removeAttribute('tabindex')
+              target.removeEventListener('blur', removeTabIndex)
+            }
+            target.addEventListener('blur', removeTabIndex, { once: true })
+          }
+        }
       }
-    } catch (error) {
-      console.error('Error resending verification:', error)
-      showNotification('ไม่สามารถส่งอีเมลยืนยันได้ กรุณาลองใหม่อีกครั้ง', 'error')
-      resendBtn.textContent = originalText
-      resendBtn.disabled = false
-    }
-  }
 
-  const handleLogout = () => {
-    if(confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-      // Clear local storage
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('user')
-      // Redirect to home
-      window.location.href = 'index.html'
-    }
-  }
-
-  const setupSidebarNavigation = () => {
-    const sidebarLinks = Array.from(document.querySelectorAll('.profile-sidebar .sidebar-link'))
-    if(sidebarLinks.length === 0){
-      return
+      if(updateHash){
+        try{
+          if(typeof history.replaceState === 'function'){
+            history.replaceState(null, '', `#${normalizedId}`)
+          } else {
+            window.location.hash = normalizedId
+          }
+        }catch(err){
+          console.warn('profile hash update failed', err)
+        }
+      }
     }
 
-    sidebarLinks.forEach((link) => {
-      link.addEventListener('click', (event) => {
+    if(anchorLinks.length){
+      const handleSidebarClick = (event) => {
+        const link = event.currentTarget
+        const href = (link.getAttribute('href') || '').trim()
+        if(!href || !href.startsWith('#')) return
         event.preventDefault()
-        const targetId = (link.getAttribute('href') || '').replace('#','')
-        if(targetId){
-          switchToSection(targetId, { scrollIntoView: true })
-        }
+        const sectionId = href.slice(1)
+        activateSidebarSection(sectionId, { scroll: true, updateHash: true })
+      }
+
+      anchorLinks.forEach((link) => {
+        link.addEventListener('click', handleSidebarClick)
       })
-    })
 
-    const initialHash = window.location.hash.replace('#','')
-    if(initialHash){
-      switchToSection(initialHash, { updateHash: false })
-    }else{
-      const firstId = (sidebarLinks[0].getAttribute('href') || '').replace('#','')
-      if(firstId){
-        switchToSection(firstId, { updateHash: false })
+      const initialHash = window.location.hash ? window.location.hash.replace(/^#/, '') : ''
+      if(initialHash){
+        activateSidebarSection(initialHash, { scroll: false, updateHash: false })
+      } else {
+        const firstAnchorTarget = anchorLinks.length ? (anchorLinks[0].getAttribute('href') || '').replace(/^#/, '') : ''
+        if(firstAnchorTarget){
+          activateSidebarSection(firstAnchorTarget, { scroll: false, updateHash: false })
+        }
       }
     }
 
-    window.addEventListener('hashchange', () => {
-      const targetId = window.location.hash.replace('#','')
-      if(targetId){
-        switchToSection(targetId, { updateHash: false })
-      }
-    })
-  }
-
-  const switchToSection = (sectionId, { scrollIntoView = false, updateHash = true } = {}) => {
-    if(!sectionId) return
-    const aliasMap = {
-      overview: 'accountOverview',
-      'edit-profile': 'editProfileSection'
+    const normalizePath = (value) => {
+      if(!value) return '/'
+      const cleaned = value
+        .replace(/\\/g, '/')
+        .replace(/\/+/g, '/')
+        .replace(/\/+$/g, '')
+      return cleaned === '' ? '/' : cleaned
     }
-    const normalizedId = document.getElementById(sectionId) ? sectionId : aliasMap[sectionId] || sectionId
-    sectionId = normalizedId
-    const links = Array.from(document.querySelectorAll('.profile-sidebar .sidebar-link'))
-    if(links.length === 0) return
-    let matched = false
-    links.forEach((link) => {
-      const targetId = (link.getAttribute('href') || '').replace('#','')
-      const isActive = targetId === sectionId
-      link.classList.toggle('is-active', isActive)
+
+    const currentPath = normalizePath(window.location.pathname)
+    sidebarLinks.forEach((link) => {
+      const href = (link.getAttribute('href') || '').trim()
+      if(!href || href.startsWith('#')) return
+      let linkPath = ''
+      try{
+        linkPath = new URL(href, window.location.href).pathname
+      }catch(err){
+        linkPath = href
+      }
+      linkPath = normalizePath(linkPath)
+      const isActive = linkPath === currentPath
       if(isActive){
+        link.classList.add('is-active')
         link.setAttribute('aria-current', 'page')
-        matched = true
-      }else{
+      } else if(!anchorLinks.includes(link)){
+        link.classList.remove('is-active')
         link.removeAttribute('aria-current')
       }
     })
 
-    if(!matched) return
-
-    if(scrollIntoView){
-      const sectionEl = document.getElementById(sectionId)
-      if(sectionEl){
-        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-    }
-
-    if(updateHash){
-      history.replaceState(null, '', `#${sectionId}`)
-    }
-  }
-
-  const initializeProfileData = () => {
     loadProfile()
-    loadRecentActivities()
-    loadAccountSettings()
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    setupSidebarNavigation()
-    const hasUser = Boolean(localStorage.getItem('user'))
-    const token = getAuthToken()
-    if(!hasUser || !token){
-      showAuthRequired('login')
-      return
-    }
-    hideAuthRequired()
-    initializeProfileData()
-  })
-
-  document.addEventListener('auth:changed', () => {
-    const hasUser = Boolean(localStorage.getItem('user'))
-    const token = getAuthToken()
-    if(!hasUser || !token){
-      showAuthRequired('login')
-      return
-    }
-    hideAuthRequired()
-    initializeProfileData()
-  })
-
-  document.addEventListener('profile:bookingsLoaded', (event) => {
-    const requests = Array.isArray(event.detail) ? event.detail : []
-    if(requests.length === 0) return
-    const confirmed = requests.filter((req) => (req.status || '').toLowerCase() === 'confirmed')
-    if(confirmed.length === 0) return
-    const extrasContainer = document.getElementById('profileExtras')
-    if(!extrasContainer) return
-    let card = extrasContainer.querySelector('[data-section="confirmed-bookings"]')
-    if(!card){
-      card = document.createElement('article')
-      card.className = 'profile-card'
-      card.setAttribute('data-section', 'confirmed-bookings')
-      card.innerHTML = '<h2>การจองที่ยืนยันแล้ว</h2>'
-      extrasContainer.appendChild(card)
-    }
-    const list = document.createElement('div')
-    list.className = 'profile-summary-grid'
-    list.innerHTML = confirmed.map((req) => {
-      const name = escapeHtml(req.requester_name || req.requester_email || '-')
-      const listing = escapeHtml(req.listing_title || '-')
-      const confirmedAt = req.updated_at || req.created_at || ''
-      const safeConfirmed = escapeHtml(confirmedAt ? formatDateTime(confirmedAt) : '-')
-      return `<div class="profile-summary-card"><span>${listing}</span><strong>${name}</strong><small>ยืนยันเมื่อ ${safeConfirmed}</small></div>`
-    }).join('')
-    const existingGrid = card.querySelector('.profile-summary-grid')
-    if(existingGrid){
-      existingGrid.replaceWith(list)
-    } else {
-      card.appendChild(list)
-    }
-    extrasContainer.hidden = false
   })
 })()
