@@ -6,7 +6,19 @@ try{ console.log('app.js loaded') } catch(e){}
 
 // Simple frontend script to load leaflet map and call backend /listings
 const authToken = localStorage.getItem('authToken')
-const DEFAULT_HEADERS = authToken ? { 'Authorization': 'Bearer ' + authToken } : {}
+const DEFAULT_HEADERS = authToken ? { 'Authorization': 'Bearer ' + authToken, 'X-Auth-Token': authToken } : {}
+const LOGIN_ERROR_MESSAGES = {
+  email_not_found: 'ไม่มี Email นี้ในระบบ กรุณากรอกใหม่อีกครั้ง',
+  invalid_password: 'รหัสผ่านผิดพลาด',
+  'invalid credentials': 'ไม่สามารถเข้าสู่ระบบได้'
+}
+
+const translateLoginError = (code, fallback) => {
+  if(!code && !fallback) return 'ไม่สามารถเข้าสู่ระบบได้'
+  if(code && LOGIN_ERROR_MESSAGES[code]) return LOGIN_ERROR_MESSAGES[code]
+  if(fallback) return fallback
+  return code || 'ไม่สามารถเข้าสู่ระบบได้'
+}
 const ROLE_LABELS = { customer: 'ลูกค้า', landlord: 'ผู้ปล่อยเช่า', admin: 'แอดมิน', host: 'ผู้ปล่อยเช่า' }
 const PROPERTY_TYPE_LABELS = { condo: 'คอนโด', house: 'บ้านเช่า', other: 'ที่พัก' }
 
@@ -978,10 +990,13 @@ if(panelLoginForm){
         localStorage.setItem('authToken', j.token);
         localStorage.setItem('user', JSON.stringify(j.user));
         renderUserStatus();
-        document.dispatchEvent(new CustomEvent('auth:changed'));
+        document.dispatchEvent(new CustomEvent('auth:changed')); 
         document.getElementById('authPanel').setAttribute('aria-hidden','true');
       }
-      else msg.textContent = j.error || 'ไม่สามารถเข้าสู่ระบบได้'
+      else {
+        const fallback = j.error || j.message
+        msg.textContent = translateLoginError(j.error, fallback)
+      }
     }catch(err){ msg.textContent = 'เครือข่ายไม่ตอบสนอง' }
     finally{ btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ' }
   })
@@ -1147,7 +1162,8 @@ if(modalForm){
         renderUserStatus()
         closeModal('loginModal')
       } else {
-        modalMsg.textContent = json.error || 'ไม่สามารถเข้าสู่ระบบได้'
+        const fallback = json.error || json.message
+        modalMsg.textContent = translateLoginError(json.error, fallback)
       }
     }catch(err){
       modalMsg.textContent = 'เกิดข้อผิดพลาดเครือข่าย'

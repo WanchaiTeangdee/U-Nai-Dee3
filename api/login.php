@@ -31,6 +31,14 @@ if(time() - ($data['first'] ?? 0) < $window){
 	$data = ['count'=>0,'first'=>time()];
 }
 
+function login_fail($statusCode, $errorKey, $fp, &$data){
+	$data['count'] = ($data['count'] ?? 0) + 1;
+	file_put_contents($fp, json_encode($data));
+	http_response_code($statusCode);
+	echo json_encode(['error' => $errorKey]);
+	exit;
+}
+
 $mysqli = db_connect();
 $stmt = $mysqli->prepare('SELECT id, password_hash, name, role, phone, last_login, email_verified, email_verified_at FROM users WHERE email = ?');
 $stmt->bind_param('s', $email);
@@ -39,11 +47,12 @@ $stmt->bind_result($id, $hash, $name, $role, $phone, $lastLogin, $emailVerified,
 $found = $stmt->fetch();
 $stmt->close();
 
-if(!$found || !password_verify($password, $hash)){
-	// increment counter
-	$data['count'] = ($data['count'] ?? 0) + 1;
-	file_put_contents($fp, json_encode($data));
-	http_response_code(401); echo json_encode(['error'=>'invalid credentials']); exit;
+if(!$found){
+	login_fail(404, 'email_not_found', $fp, $data);
+}
+
+if(!password_verify($password, $hash)){
+	login_fail(401, 'invalid_password', $fp, $data);
 }
 
 // successful login -> reset counter file

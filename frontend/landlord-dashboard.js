@@ -10,6 +10,7 @@ const cssEscape = (value) => {
 
 const LANDLORD_ROLE_LABELS = { condo: 'คอนโด', house: 'บ้านเช่า', other: 'อื่น ๆ' }
 const MAP_DEFAULT_CENTER = [13.7563, 100.5018]
+const DEFAULT_LISTING_PHOTO = 'https://cdn.jsdelivr.net/gh/ionic-team/ionicons@7.1.0/src/svg/home-outline.svg'
 const MAX_IMAGES = 5
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB per file
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
@@ -17,6 +18,73 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp
 const escapeHtml = (value) => {
   if(value === null || value === undefined) return ''
   return String(value).replace(/[&<>'"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]))
+}
+function toListingImageSrc(path){
+  if(typeof path !== 'string') return null
+  const trimmed = path.trim()
+  if(trimmed === '') return null
+  if(/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/')) return trimmed
+  const cleaned = trimmed.replace(/^(\.{1,2}\/)+/, '')
+  const normalized = cleaned.replace(/\\/g, '/')
+  if(/^https?:\/\//i.test(normalized) || normalized.startsWith('/')) return normalized
+  return `../${normalized}`
+}
+function getListingImageKeys(listing){
+  if(!listing) return []
+  const rawImages = Array.isArray(listing.images) ? listing.images : []
+  return rawImages
+    .map((raw) => (typeof raw === 'string' ? raw.trim() : ''))
+    .filter((key) => key !== '')
+}
+function getRemainingListingImageUrls(listing){
+  if(!listing) return []
+  const keys = getListingImageKeys(listing)
+  if(keys.length === 0) return []
+  const removalSet = removedImages instanceof Set
+    ? new Set(Array.from(removedImages).map((path) => (typeof path === 'string' ? path.trim() : '')).filter(Boolean))
+    : new Set()
+  return keys
+    .filter((key) => !removalSet.has(key))
+    .map((key) => toListingImageSrc(key))
+    .filter((src) => typeof src === 'string' && src.trim() !== '')
+}
+function createListingMarkerIcon(photoUrl){
+  const safeUrl = escapeHtml(photoUrl || DEFAULT_LISTING_PHOTO)
+  const html = `
+    <div class="listing-marker-thumb">
+      <img src="${safeUrl}" alt="ภาพประกอบที่พัก" />
+    </div>
+    <div class="listing-marker-pin"></div>
+  `
+  return L.divIcon({
+    className: 'listing-marker',
+    html,
+    iconSize: [64, 80],
+    iconAnchor: [32, 70],
+    popupAnchor: [0, -70]
+  })
+}
+
+function refreshMarkerPhoto(listingContext){
+  let primaryPhoto = previewUrls.length > 0 ? previewUrls[0] : null
+  const listing = listingContext || (currentEditId !== null ? getListingById(currentEditId) : null)
+  if(!primaryPhoto && listing){
+    const remaining = getRemainingListingImageUrls(listing)
+    if(remaining.length > 0){
+      primaryPhoto = remaining[0]
+    }
+  }
+  const resolved = (primaryPhoto || DEFAULT_LISTING_PHOTO)
+  if(mapMarkerPhotoUrl !== resolved){
+    mapMarkerPhotoUrl = resolved
+    if(mapMarker){
+      try{
+        mapMarker.setIcon(createListingMarkerIcon(resolved))
+      }catch(err){
+        console.warn('update marker icon error', err)
+      }
+    }
+  }
 }
 
 function formatDateTime(value){
@@ -75,7 +143,9 @@ if(!currentUser){
 const currentUserId = Number(currentUser?.id || 0)
 
 const authToken = localStorage.getItem('authToken')
-const AUTH_HEADERS = authToken ? { 'Authorization': 'Bearer ' + authToken } : {}
+const AUTH_HEADERS = authToken
+  ? { 'Authorization': 'Bearer ' + authToken, 'X-Auth-Token': authToken }
+  : {}
 const JSON_HEADERS = { 'Content-Type': 'application/json', ...AUTH_HEADERS }
 
 const PHP_API_BASE = (() => {
@@ -227,6 +297,7 @@ function initCollapsibles(){
 let mapInstance = null
 let mapMarker = null
 let previewUrls = []
+let mapMarkerPhotoUrl = DEFAULT_LISTING_PHOTO
 let suppressResetSuccessHide = false
 let currentEditId = null
 let currentListings = []
@@ -269,6 +340,7 @@ function clearImagePreview(){
   if(elements.imagePreview){
     elements.imagePreview.innerHTML = '<div class="preview-placeholder">ยังไม่มีรูปที่เลือก</div>'
   }
+  refreshMarkerPhoto()
 }
 
 function updateImagePreview(){
@@ -284,6 +356,7 @@ function updateImagePreview(){
       }
     }
     elements.imagePreview.innerHTML = '<div class="preview-placeholder">ยังไม่มีรูปที่เลือก</div>'
+    refreshMarkerPhoto()
     return
   }
   const items = files.map((file) => {
@@ -292,6 +365,7 @@ function updateImagePreview(){
     return `<div class="preview-item"><img src="${url}" alt="${escapeHtml(file.name)}" /><span>${escapeHtml(file.name)}</span></div>`
   })
   elements.imagePreview.innerHTML = items.join('')
+  refreshMarkerPhoto()
 }
 
 function getListingById(id){
@@ -302,12 +376,16 @@ function getListingById(id){
 }
 
 function renderExistingImagesForEdit(listing){
-  if(!elements.imagePreview) return
+  if(!elements.imagePreview){
+    refreshMarkerPhoto(listing)
+    return
+  }
   if(!(removedImages instanceof Set)){
     removedImages = new Set()
   }
   if(!listing){
     elements.imagePreview.innerHTML = '<div class="preview-placeholder">ยังไม่มีรูปประกอบสำหรับประกาศนี้</div>'
+    refreshMarkerPhoto()
     return
   }
   const normalizedImages = Array.isArray(listing.images)
@@ -323,6 +401,7 @@ function renderExistingImagesForEdit(listing){
   const remaining = normalizedImages.filter((item) => !removalSet.has(item.key))
   const totalExisting = normalizedImages.length
   const removedCount = totalExisting - remaining.length
+  refreshMarkerPhoto(listing)
 
   const noteParts = []
   if(totalExisting > 0){
@@ -355,9 +434,7 @@ function renderExistingImagesForEdit(listing){
   const cards = remaining.map((item, index) => {
     const rawPath = item.raw
     const key = item.key
-    let normalized = key.replace(/^(\.{1,2}\/)+/, '')
-    const isAbsolute = /^https?:\/\//i.test(normalized) || normalized.startsWith('/')
-    const src = isAbsolute ? normalized : `../${normalized}`
+    const src = toListingImageSrc(key) || ''
     const label = `รูปที่ ${index + 1}`
     const displayName = key || label
     return `
@@ -580,7 +657,7 @@ function setMarker(latLng){
   const lngNum = typeof latLng.lng === 'number' ? latLng.lng : parseFloat(latLng.lng)
   if(Number.isNaN(latNum) || Number.isNaN(lngNum)) return
   if(!mapMarker){
-    mapMarker = L.marker([latNum, lngNum], { draggable: true }).addTo(mapInstance)
+    mapMarker = L.marker([latNum, lngNum], { draggable: true, icon: createListingMarkerIcon(mapMarkerPhotoUrl) }).addTo(mapInstance)
     mapMarker.on('dragend', (event) => {
       const position = event.target.getLatLng()
       setMarker(position)
@@ -592,6 +669,7 @@ function setMarker(latLng){
   if(elements.longitude) elements.longitude.value = lngNum.toFixed(6)
   updateCoordinateDisplays(latNum, lngNum)
   mapInstance.setView([latNum, lngNum], Math.max(mapInstance.getZoom(), 14))
+  refreshMarkerPhoto()
 }
 
 function initMap(){

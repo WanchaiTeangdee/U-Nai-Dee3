@@ -67,7 +67,7 @@ if(!currentUser){
 const authToken = localStorage.getItem('authToken')
 const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
-  ...(authToken ? { 'Authorization': 'Bearer ' + authToken } : {})
+  ...(authToken ? { 'Authorization': 'Bearer ' + authToken, 'X-Auth-Token': authToken } : {})
 }
 
 const userModalEl = document.getElementById('userModal')

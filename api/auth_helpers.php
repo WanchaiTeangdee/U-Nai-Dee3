@@ -6,11 +6,25 @@ function get_bearer_token(){
     if(function_exists('apache_request_headers')){
         $headers = apache_request_headers();
     }
-    $header = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if(!$header) return null;
-    if(stripos($header, 'Bearer ') === 0){
-        return substr($header, 7);
+
+    $candidates = [
+        $headers['Authorization'] ?? null,
+        $_SERVER['HTTP_AUTHORIZATION'] ?? null,
+        $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null,
+        $_SERVER['Authorization'] ?? null,
+        $_SERVER['HTTP_X_AUTH_TOKEN'] ?? null,
+    ];
+
+    foreach($candidates as $raw){
+        if(!$raw) continue;
+        if(stripos($raw, 'Bearer ') === 0){
+            return substr($raw, 7);
+        }
+        if(preg_match('/^[A-Fa-f0-9]{20,}$/', $raw)){
+            return $raw;
+        }
     }
+
     return null;
 }
 
